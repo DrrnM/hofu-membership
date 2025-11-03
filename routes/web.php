@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\Owner\RewardController;
 use App\Http\Controllers\Owner\LaporanController;
+use App\Http\Controllers\PoinController;
 
 // === AUTHENTICATION ===
 Route::get('/', [LoginController::class, 'showLogin'])->name('login');
@@ -45,6 +46,8 @@ Route::prefix('owner')->group(function () {
     Route::get('/laporan', [LaporanController::class, 'index'])->name('owner.laporan.index');
     Route::delete('/laporan/{id}', [LaporanController::class, 'destroy'])->name('owner.laporan.destroy');
 });
+
+Route::resource('poins', PoinController::class)->only(['index', 'edit', 'update']);
 
 Route::get('/check', function () {
     dd(Auth::user());

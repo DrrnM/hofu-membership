@@ -1,43 +1,46 @@
 @extends('Owner.layouts.app')
+@section('title', 'Laporan Transaksi')
+@section('page-title', '📈 Laporan Transaksi')
 
 @section('content')
-<h3>Laporan Transaksi</h3>
+<div class="card shadow-sm p-4">
+    <form action="{{ route('owner.laporan.index') }}" method="GET" class="d-flex mb-4" style="max-width: 400px;">
+        <input type="text" name="search" class="form-control me-2" placeholder="Cari nama member..." value="{{ request('search') }}">
+        <button class="btn btn-primary">🔍</button>
+    </form>
 
-<form method="GET" class="row mb-3">
-    <div class="col-md-4">
-        <input type="text" name="periode_laporan" class="form-control" placeholder="Cari periode..." value="{{ request('periode_laporan') }}">
-    </div>
-    <div class="col-md-4">
-        <input type="date" name="tanggal_dibuat" class="form-control" value="{{ request('tanggal_dibuat') }}">
-    </div>
-    <div class="col-md-4">
-        <button class="btn btn-primary w-100">Cari</button>
-    </div>
-</form>
-
-<table class="table table-bordered">
-    <thead class="table-light">
-        <tr>
-            <th>ID</th>
-            <th>Periode</th>
-            <th>Tanggal Dibuat</th>
-            <th>Aksi</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach ($laporans as $l)
-        <tr>
-            <td>{{ $l->id_laporan }}</td>
-            <td>{{ $l->periode_laporan }}</td>
-            <td>{{ $l->tanggal_dibuat }}</td>
-            <td>
-                <form action="{{ route('owner.laporan.destroy', $l->id_laporan) }}" method="POST">
-                    @csrf @method('DELETE')
-                    <button class="btn btn-danger btn-sm" onclick="return confirm('Yakin hapus laporan ini?')">Hapus</button>
-                </form>
-            </td>
-        </tr>
-        @endforeach
-    </tbody>
-</table>
+    <table class="table table-bordered table-striped align-middle">
+        <thead class="table-primary text-center">
+            <tr>
+                <th>No</th>
+                <th>Tanggal</th>
+                <th>Member</th>
+                <th>Total Transaksi</th>
+                <th>Poin</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($laporan as $lap)
+            <tr>
+                <td class="text-center">{{ $loop->iteration }}</td>
+                <td class="text-center">{{ $lap->tanggal }}</td>
+                <td>{{ $lap->member->nama ?? '-' }}</td>
+                <td class="text-end">Rp {{ number_format($lap->total_transaksi, 0, ',', '.') }}</td>
+                <td class="text-center">{{ $lap->poin_diperoleh }}</td>
+                <td class="text-center">
+                    <form action="{{ route('owner.laporan.destroy', $lap->id_laporan) }}" method="POST" class="d-inline">
+                        @csrf @method('DELETE')
+                        <button onclick="return confirm('Hapus laporan ini?')" class="btn btn-danger btn-sm">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="6" class="text-center text-muted">Belum ada data laporan</td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
 @endsection
