@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class LoginController extends Controller
 {
@@ -15,25 +17,38 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'username' => 'required',
-            'password' => 'required',
+    
+        $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
         ]);
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+        $user = User::where('username', $request->username)->first();
 
-            // Arahkan sesuai role
-            if (Auth::username()->role === 'owner') {
-                return redirect()->intended('resources\views\Owner\Dashboard.blade.php');
-            } else {
-                return redirect()->intended('resources\views\Kasir\Dashboard.blade.php');
-            }
+        if (!$user) {
+            return back()->withErrors([
+                'username' => 'Username tidak terdaftar.',
+            ])->onlyInput('username');
         }
 
-        return back()->withErrors([
-            'username' => 'Username atau password salah.',
-        ]);
+        if (!Hash::check($request->password, $user->password)) {
+            return back()->withErrors([
+                'password' => 'Password salah.',
+            ])->onlyInput('username');
+        }
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        // ✅ Arahkan berdasarkan role (username)
+        if ($user->username === 'owner') {
+            return redirect()->intended('/owner/dashboard');
+        } elseif ($user->username === 'kasir') {
+            return redirect()->intended('/kasir/dashboard');
+        }
+
+        // Default redirect
+        return redirect()->intended('/');
     }
 
     public function logout(Request $request)

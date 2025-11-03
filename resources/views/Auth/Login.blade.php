@@ -1,24 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Login Sistem Hofu</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SIHOCO</title>
+    <link rel="stylesheet" href="{{ asset('css/login.css') }}">
 </head>
-<body class="d-flex justify-content-center align-items-center vh-100 bg-light">
-  <div class="card p-4 shadow-lg" style="width: 350px;">
-    <h4 class="text-center mb-4">Login Sistem Hofu</h4>
-    <form action="/login" method="POST">
-      @csrf
-      <div class="mb-3">
-        <label>Username</label>
-        <input type="text" name="username" class="form-control" required>
-      </div>
-      <div class="mb-3">
-        <label>Password</label>
-        <input type="password" name="password" class="form-control" required>
-      </div>
-      <button type="submit" class="btn btn-primary w-100">Login</button>
-    </form>
-  </div>
+<body>
+    <div class="login-container">
+        <h2>SIHOCO</h2>
+        @if ($errors->any())
+            <div style="color:red; margin-bottom:15px; text-align:left;">
+                @foreach ($errors->all() as $error)
+                    <div>{{ $error }}</div>
+                @endforeach
+            </div>
+        @endif
+        <form action="{{ url('/login') }}" method="POST">
+            @csrf
+            <input type="text" name="username" value="{{ old('username') }}" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
 </body>
+</html>
+
 </html>

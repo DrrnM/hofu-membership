@@ -1,0 +1,111 @@
+/* 🌈 Background dan layout utama */
+body {
+    background-color:aqua;
+    font-family: "Poppins", sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* 🧊 Container utama (kotak login) */
+.login-container {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    padding: 30px 25px;
+    width: 90%;
+    max-width: 400px;
+    margin: 60px auto;
+    text-align: center;
+    box-sizing: border-box;
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+/* ✨ Efek animasi masuk */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 🩵 Judul SIHOCO */
+.login-container h2 {
+    color: #1565c0;
+    margin-bottom: 25px;
+    letter-spacing: 1px;
+}
+
+/* 🧠 Input username & password */
+input[type="text"],
+input[type="password"] {
+    width: calc(100% - 10px);
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    margin-bottom: 15px;
+    outline: none;
+    transition: 0.3s;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+input:focus {
+    border-color: #5cbdf7;
+    box-shadow: 0 0 8px rgba(92, 189, 247, 0.5);
+}
+
+/* 🔘 Tombol Login */
+button {
+    width: calc(100% - 10px);
+    background-color: #5cbdf7;
+    border: none;
+    padding: 10px;
+    color: white;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background-color: #3daee2;
+}
+
+/* 🔗 Link tambahan */
+a {
+    color: #1565c0;
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* 📱 Responsif untuk HP */
+@media (max-width: 600px) {
+    .login-container {
+        padding: 25px 20px;
+        margin: 20px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    button {
+        font-size: 13px;
+    }
+
+    h2 {
+        font-size: 18px;
+    }
+}

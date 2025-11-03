@@ -1,23 +1,18 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
+use Illuminate\Support\Facades\Auth;
 
-// ======== ROUTE LOGIN ==========
 Route::get('/', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// ======== ROUTE DASHBOARD (KASIR & OWNER) ==========
+
 Route::middleware(['auth'])->group(function () {
+    Route::get('/kasir/dashboard', fn() => view('kasir.dashboard'));
+    Route::get('/owner/dashboard', fn() => view('owner.dashboard'));
+});
 
-    // Dashboard Kasir
-    Route::get('resources/views/Kasir/Dashboard.blade.php', function () {
-        return view('kasir.dashboard');
-    })->middleware('role:kasir')->name('kasir.dashboard');
-
-    // Dashboard Owner
-    Route::get('resources\views\Owner\Dashboard.blade.php', function () {
-        return view('owner.dashboard');
-    })->middleware('role:owner')->name('owner.dashboard');
+Route::get('/check', function () {
+    dd(Auth::user());
 });
