@@ -103,10 +103,9 @@
         <a href="#">Poin</a>
         <a href="#">Reward</a>
         <a href="#">Laporan</a>
-    </div>
+    </div> -->
 
-    <!-- Main Content -->
-    <div class="main-content">
+ <div class="main-content">
         <div class="header">
             <h4>Selamat Datang, Owner ☕</h4>
             <form action="{{ route('logout') }}" method="POST">
