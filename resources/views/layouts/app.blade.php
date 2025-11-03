@@ -2,35 +2,26 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hofu Coffee System</title>
+    <title>SIHOCO Owner</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
+<body style="background-color:#f6f8fa;">
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">☕ Hofu Coffee</a>
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a href="/members" class="nav-link">Member</a></li>
-        <li class="nav-item"><a href="/logout" class="nav-link"
-            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a></li>
-      </ul>
+<div class="d-flex">
+    <!-- Sidebar -->
+    <div class="bg-primary text-white p-3" style="width:220px; min-height:100vh;">
+        <h4 class="text-center fw-bold mb-4">SIHOCO</h4>
+        <a href="/owner/dashboard" class="d-block text-white mb-2">🏠 Home</a>
+        <a href="/owner/reward" class="d-block text-white mb-2">🎁 Reward</a>
+        <a href="/owner/laporan" class="d-block text-white mb-2">📊 Laporan</a>
+        <a href="/logout" class="d-block text-white mt-4">🚪 Exit</a>
     </div>
-  </div>
-</nav>
 
-<form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">@csrf</form>
-
-<div class="container mt-4">
-    @yield('content')
+    <!-- Main Content -->
+    <div class="flex-grow-1 p-4">
+        @yield('content')
+    </div>
 </div>
 
-<footer class="text-center text-muted mt-5 mb-3">
-    <small>© {{ date('Y') }} Hofu Coffee - Sistem Membership</small>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
