@@ -40,7 +40,7 @@ class LoginController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        // ✅ Arahkan berdasarkan role (username)
+      
         if ($user->username === 'owner') {
             return redirect()->intended('/owner/dashboard');
         } elseif ($user->username === 'kasir') {

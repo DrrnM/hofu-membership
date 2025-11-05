@@ -1,4 +1,4 @@
-@extends('Owner.layouts.app')
+@extends('layouts.app')
 @section('title', 'Daftar Reward')
 @section('page-title', '🎁 Daftar Reward')
 

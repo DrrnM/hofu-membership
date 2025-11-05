@@ -15,3 +15,19 @@
     </div>
 </div>
 @endsection
+@extends('layouts.app')
+
+@section('title', 'Detail Member')
+
+@section('content')
+<div class="card shadow-sm p-4">
+    <h4 class="fw-bold text-primary mb-3">👤 Detail Member</h4>
+    <table class="table table-bordered">
+        <tr><th>ID Member</th><td>{{ $member->id_member }}</td></tr>
+        <tr><th>Nama</th><td>{{ $member->nama }}</td></tr>
+        <tr><th>No HP</th><td>{{ $member->no_hp }}</td></tr>
+        <tr><th>Poin</th><td>{{ $member->poin }}</td></tr>
+    </table>
+    <a href="{{ route('members.index') }}" class="btn btn-secondary mt-3">⬅ Kembali</a>
+</div>
+@endsection

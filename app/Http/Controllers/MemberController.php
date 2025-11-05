@@ -8,80 +8,81 @@ use Illuminate\Support\Facades\Auth;
 
 class MemberController extends Controller
 {
-    public function index()
+    // 📋 INDEX + SEARCH BERDASARKAN ID MEMBER (tidak harus spesifik)
+    public function index(Request $request)
     {
-        $members = Member::all();
-        $username = Auth::user()->username ?? 'kasir';
+        $search = $request->input('search');
 
-        // Tentukan tampilan berdasarkan username
-        if ($username === 'owner') {
-            return view('Owner.Member.index', compact('members'));
-        } else {
-            return view('Kasir.Member.index', compact('members'));
-        }
+        $members = Member::when($search, function ($query, $search) {
+            return $query->where('id_member', 'like', "%{$search}%");
+        })->get();
+
+        return view('Member.index', compact('members'));
     }
 
+    // ➕ CREATE (Owner & Kasir bisa)
     public function create()
     {
-        // hanya owner yang bisa tambah data
-        if (Auth::user()->username !== 'owner') {
-            abort(403, 'Akses ditolak: hanya owner yang dapat menambah member.');
-        }
-
-        return view('Owner.Member.create');
+        return view('Member.create');
     }
 
+    // 💾 STORE
     public function store(Request $request)
     {
-        if (Auth::user()->username !== 'owner') {
-            abort(403, 'Akses ditolak: hanya owner yang dapat menambah member.');
-        }
-
         $request->validate([
             'nama' => 'required|string|max:100',
             'no_hp' => 'required|string|max:20|unique:members,no_hp',
             'poin' => 'nullable|integer|min:0',
         ]);
 
-        Member::create($request->all());
+        // 🔢 Random ID Member 3 digit unik
+        do {
+            $randomId = rand(100, 999);
+        } while (Member::where('id_member', $randomId)->exists());
+
+        Member::create([
+            'id_member' => $randomId,
+            'nama' => $request->nama,
+            'no_hp' => $request->no_hp,
+            'poin' => $request->poin ?? 0,
+        ]);
+
         return redirect()->route('members.index')->with('success', 'Member berhasil ditambahkan!');
     }
 
-    public function edit($id)
+    // 👁️ SHOW (Owner & Kasir bisa)
+    public function show($id)
     {
-        if (Auth::user()->username !== 'owner') {
-            abort(403, 'Akses ditolak: hanya owner yang dapat mengedit member.');
-        }
-
-        $member = Member::findOrFail($id);
-        return view('Owner.Member.edit', compact('member'));
+        $member = Member::where('id_member', $id)->firstOrFail();
+        return view('Member.show', compact('member'));
     }
 
+    // ✏️ EDIT (Owner & Kasir bisa)
+    public function edit($id)
+    {
+        $member = Member::where('id_member', $id)->firstOrFail();
+        return view('Member.edit', compact('member'));
+    }
+
+    // 🔄 UPDATE (Owner & Kasir bisa)
     public function update(Request $request, $id)
     {
-        if (Auth::user()->username !== 'owner') {
-            abort(403, 'Akses ditolak: hanya owner yang dapat mengupdate member.');
-        }
-
         $request->validate([
             'nama' => 'required|string|max:100',
-            'no_hp' => 'required|string|max:20|unique:members,no_hp,' . $id,
+            'no_hp' => 'required|string|max:20|unique:members,no_hp,' . $id . ',id_member',
             'poin' => 'nullable|integer|min:0',
         ]);
 
-        $member = Member::findOrFail($id);
-        $member->update($request->all());
+        $member = Member::where('id_member', $id)->firstOrFail();
+        $member->update($request->only(['nama', 'no_hp', 'poin']));
 
-        return redirect()->route('members.index')->with('success', 'Member berhasil diperbarui!');
+        return redirect()->route('members.index')->with('success', 'Data member berhasil diperbarui!');
     }
 
+    // ❌ DELETE (Owner & Kasir bisa)
     public function destroy($id)
     {
-        if (Auth::user()->username !== 'owner') {
-            abort(403, 'Akses ditolak: hanya owner yang dapat menghapus member.');
-        }
-
-        $member = Member::findOrFail($id);
+        $member = Member::where('id_member', $id)->firstOrFail();
         $member->delete();
 
         return redirect()->route('members.index')->with('success', 'Member berhasil dihapus!');
