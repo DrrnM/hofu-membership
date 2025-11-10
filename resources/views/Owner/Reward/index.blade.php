@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 @extends('layouts.app')
+=======
+@extends('Owner.layouts.app')
+>>>>>>> b560b58e9f7f9befe66325960fcc942b88e970a4
 @section('title', 'Daftar Reward')
 @section('page-title', '🎁 Daftar Reward')
 

@@ -15,6 +15,7 @@
     </div>
 </div>
 @endsection
+<<<<<<< HEAD
 @extends('layouts.app')
 
 @section('title', 'Detail Member')
@@ -31,3 +32,5 @@
     <a href="{{ route('members.index') }}" class="btn btn-secondary mt-3">⬅ Kembali</a>
 </div>
 @endsection
+=======
+>>>>>>> b560b58e9f7f9befe66325960fcc942b88e970a4

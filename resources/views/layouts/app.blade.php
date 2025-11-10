@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+<<<<<<< HEAD
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>@yield('title','SIHC')</title>
@@ -21,9 +22,15 @@
     .card-info{background:#d4ecff;border-radius:12px;padding:20px;box-shadow:0 3px 10px rgba(0,0,0,.1)}
     .dashboard-cards{display:flex;gap:20px;flex-wrap:wrap}
   </style>
+=======
+    <meta charset="UTF-8">
+    <title>SIHOCO Owner</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+>>>>>>> b560b58e9f7f9befe66325960fcc942b88e970a4
 </head>
-<body>
+<body style="background-color:#f6f8fa;">
 
+<<<<<<< HEAD
   <aside class="sidebar">
     <div>
       <h3>SIHC</h3>
@@ -52,6 +59,23 @@
 
     @yield('content')
   </main>
+=======
+<div class="d-flex">
+    <!-- Sidebar -->
+    <div class="bg-primary text-white p-3" style="width:220px; min-height:100vh;">
+        <h4 class="text-center fw-bold mb-4">SIHOCO</h4>
+        <a href="/owner/dashboard" class="d-block text-white mb-2">🏠 Home</a>
+        <a href="/owner/reward" class="d-block text-white mb-2">🎁 Reward</a>
+        <a href="/owner/laporan" class="d-block text-white mb-2">📊 Laporan</a>
+        <a href="/logout" class="d-block text-white mt-4">🚪 Exit</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-grow-1 p-4">
+        @yield('content')
+    </div>
+</div>
+>>>>>>> b560b58e9f7f9befe66325960fcc942b88e970a4
 
 </body>
 </html>
