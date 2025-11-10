@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class MemberController extends Controller
 {
-    // 📋 INDEX + SEARCH BERDASARKAN ID MEMBER (tidak harus spesifik)
+
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -20,7 +20,7 @@ class MemberController extends Controller
         return view('Member.index', compact('members'));
     }
 
-    // ➕ CREATE (Owner & Kasir bisa)
+
     public function create()
     {
         return view('Member.create');
@@ -79,7 +79,7 @@ class MemberController extends Controller
         return redirect()->route('members.index')->with('success', 'Data member berhasil diperbarui!');
     }
 
-    // ❌ DELETE (Owner & Kasir bisa)
+
     public function destroy($id)
     {
         $member = Member::where('id_member', $id)->firstOrFail();

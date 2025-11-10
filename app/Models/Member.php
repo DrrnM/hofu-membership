@@ -10,9 +10,9 @@ class Member extends Model
     use HasFactory;
 
     protected $table = 'members';
-    protected $primaryKey = 'id_member';
-    public $incrementing = false;
-    protected $keyType = 'string';
+    protected $primaryKey = 'id';
+    public $incrementing = true;
+    protected $keyType = 'int';
 
-    protected $fillable = ['id_member', 'nama', 'no_hp', 'poin'];
+    protected $fillable = ['nama', 'no_hp', 'poin'];
 }

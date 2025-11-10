@@ -9,23 +9,21 @@ use App\Http\Controllers\Owner\RewardController;
 use App\Http\Controllers\Owner\LaporanController;
 use App\Http\Controllers\PoinController;
 
-// === AUTHENTICATION ===
+
 Route::get('/', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-
 Route::middleware(['auth'])->group(function () {
 
-    // DASHBOARD OWNER 
     Route::get('/owner/dashboard', [DashboardController::class, 'indexOwner'])
         ->name('owner.dashboard');
 
-    // DASHBOARD KASIR 
+
     Route::get('/kasir/dashboard', [DashboardController::class, 'indexKasir'])
         ->name('kasir.dashboard');
-    Route::resource('members', MemberController::class);
-    
+
+
     Route::get('/members', [MemberController::class, 'index'])->name('members.index');
     Route::get('/members/create', [MemberController::class, 'create'])->name('members.create');
     Route::post('/members', [MemberController::class, 'store'])->name('members.store');
@@ -35,8 +33,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/members/{id}', [MemberController::class, 'destroy'])->name('members.destroy');
 });
 
+
 Route::prefix('owner')->group(function () {
-    // Reward
+
     Route::get('/reward', [RewardController::class, 'index'])->name('owner.reward.index');
     Route::get('/reward/create', [RewardController::class, 'create'])->name('owner.reward.create');
     Route::post('/reward', [RewardController::class, 'store'])->name('owner.reward.store');
@@ -44,12 +43,13 @@ Route::prefix('owner')->group(function () {
     Route::put('/reward/{id}', [RewardController::class, 'update'])->name('owner.reward.update');
     Route::delete('/reward/{id}', [RewardController::class, 'destroy'])->name('owner.reward.destroy');
 
-    // Laporan
     Route::get('/laporan', [LaporanController::class, 'index'])->name('owner.laporan.index');
     Route::delete('/laporan/{id}', [LaporanController::class, 'destroy'])->name('owner.laporan.destroy');
 });
 
+
 Route::resource('poins', PoinController::class)->only(['index', 'edit', 'update']);
+
 
 Route::get('/check', function () {
     dd(Auth::user());

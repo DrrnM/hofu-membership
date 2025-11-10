@@ -1,106 +1,47 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ubah Poin - SIHC</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f1f8ff;
-            font-family: "Poppins", sans-serif;
-            margin: 0;
-            display: flex;
-        }
-        .sidebar {
-            width: 220px;
-            background: linear-gradient(180deg, #5cbdf7, #84fab0);
-            color: white;
-            height: 100vh;
-            padding-top: 20px;
-            position: fixed;
-        }
-        .sidebar h3 {
-            text-align: center;
-            font-weight: 700;
-            margin-bottom: 30px;
-        }
-        .sidebar a {
-            display: block;
-            color: white;
-            padding: 12px 20px;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .sidebar a:hover {
-            background-color: rgba(255,255,255,0.2);
-            border-radius: 5px;
-        }
-        .main-content {
-            margin-left: 220px;
-            padding: 20px;
-            width: calc(100% - 220px);
-        }
-        .header {
-            background-color: #a2d9ff;
-            padding: 10px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-    </style>
-</head>
-<body>
+@extends('layouts.app')
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <h3>SIHC</h3>
-        <a href="{{ url('/owner/dashboard') }}">Home</a>
-        <a href="{{ route('members.index') }}">Member</a>
-        <a href="{{ route('poins.index') }}" class="fw-bold">Poin</a>
-        <a href="{{ route('rewards.index') }}">Reward</a>
-        <a href="{{ route('laporans.index') }}">Laporan</a>
-    </div>
+@section('title', 'Ubah Poin Member')
+@section('page-title', 'Ubah Poin Member ☕')
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="header">
-            <h4>Ubah Poin Member ☕</h4>
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button class="btn btn-sm btn-outline-danger">Logout</button>
-            </form>
+@section('content')
+<div class="card shadow-sm border-0 p-4" style="background-color:#eaf6ff; max-width:600px; margin:auto;">
+    <h4 class="fw-bold text-primary mb-3 text-center">Ubah Poin Member</h4>
+
+    <form action="{{ route('poins.update', $poin->id) }}" method="POST">
+        @csrf
+        @method('PUT')
+
+        {{-- Nama Member --}}
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Nama Member</label>
+            <input type="text" class="form-control" value="{{ $poin->member->nama ?? '-' }}" readonly>
         </div>
 
-        <div class="card p-4 shadow-sm">
-            <form action="{{ route('poins.update', $poin->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-
-                <div class="mb-3">
-                    <label class="form-label">Nama Member</label>
-                    <input type="text" class="form-control" value="{{ $poin->member->nama ?? '-' }}" readonly>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Jumlah Poin</label>
-                    <input type="number" name="jumlah_poin" class="form-control" value="{{ $poin->jumlah_poin }}" required>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Keterangan</label>
-                    <input type="text" name="keterangan" class="form-control" value="{{ $poin->keterangan }}">
-                </div>
-
-                <div class="d-flex justify-content-between">
-                    <a href="{{ route('poins.index') }}" class="btn btn-secondary">Kembali</a>
-                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                </div>
-            </form>
+        {{-- Jumlah Poin --}}
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Jumlah Poin</label>
+            <input type="number" name="jumlah_poin" class="form-control" 
+                   value="{{ old('jumlah_poin', $poin->jumlah_poin) }}" required>
+            @error('jumlah_poin')
+                <small class="text-danger">{{ $message }}</small>
+            @enderror
         </div>
-    </div>
 
-</body>
-</html>
+        {{-- Keterangan --}}
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Keterangan</label>
+            <input type="text" name="keterangan" class="form-control"
+                   value="{{ old('keterangan', $poin->keterangan) }}">
+            @error('keterangan')
+                <small class="text-danger">{{ $message }}</small>
+            @enderror
+        </div>
+
+        {{-- Tombol --}}
+        <div class="d-flex justify-content-between mt-4">
+            <a href="{{ route('poins.index') }}" class="btn btn-secondary px-4">⬅ Kembali</a>
+            <button type="submit" class="btn btn-primary px-4">💾 Simpan Perubahan</button>
+        </div>
+    </form>
+</div>
+@endsection

@@ -1,6 +1,6 @@
-@extends('Owner.layouts.app')
+@extends('layouts.app')
 @section('title', 'Edit Reward')
-@section('page-title', '✏️ Edit Reward')
+@section('page-title', 'Edit Reward')
 
 @section('content')
 <div class="card shadow-sm p-4">
@@ -24,8 +24,8 @@
         </div>
 
         <div class="d-flex justify-content-between mt-4">
-            <a href="{{ route('owner.reward.index') }}" class="btn btn-secondary">⬅ Kembali</a>
-            <button type="submit" class="btn btn-primary">💾 Simpan Perubahan</button>
+            <a href="{{ route('owner.reward.index') }}" class="btn btn-secondary">Kembali</a>
+            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
         </div>
     </form>
 </div>

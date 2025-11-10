@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Tambah Member')
-@section('page-title', '➕ Tambah Member')
+@section('page-title', 'Tambah Member')
 
 @section('content')
 <div class="main-content p-4">
@@ -37,8 +37,8 @@
             </div>
 
             <div class="d-flex justify-content-between mt-4">
-                <a href="{{ route('members.index') }}" class="btn btn-secondary px-4">⬅ Kembali</a>
-                <button type="submit" class="btn btn-success px-4">💾 Simpan</button>
+                <a href="{{ route('members.index') }}" class="btn btn-secondary px-4">Kembali</a>
+                <button type="submit" class="btn btn-success px-4">Simpan</button>
             </div>
         </form>
     </div>

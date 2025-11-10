@@ -8,24 +8,37 @@ use Illuminate\Http\Request;
 
 class PoinController extends Controller
 {
+
     public function index()
     {
+
         $poins = Poin::with('member')->paginate(10);
+
         return view('owner.poin.index', compact('poins'));
     }
+
 
     public function edit(Poin $poin)
     {
         return view('owner.poin.edit', compact('poin'));
     }
 
+
     public function update(Request $request, Poin $poin)
     {
         $request->validate([
-            'jumlah_poin' => 'required|integer',
+            'jumlah_poin' => 'required|numeric|min:0',
+            'keterangan' => 'nullable|string|max:255',
         ]);
 
-        $poin->update($request->all());
-        return redirect()->route('poins.index')->with('success', 'Poin berhasil diperbarui');
+
+        $poin->update([
+            'jumlah_poin' => $request->jumlah_poin,
+            'keterangan' => $request->keterangan,
+        ]);
+
+        return redirect()
+            ->route('poins.index')
+            ->with('success', '✅ Poin berhasil diperbarui.');
     }
 }
