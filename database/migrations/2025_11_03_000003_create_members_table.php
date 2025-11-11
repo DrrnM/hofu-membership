@@ -4,16 +4,18 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('members', function (Blueprint $table) {
-            $table->id();
+            $table->string('id_member', 3)->primary();  
             $table->string('nama');
             $table->string('no_hp')->unique();
             $table->integer('poin')->default(0);
             $table->timestamps();
+
+            $table->engine = 'InnoDB';
+            $table->collation = 'utf8mb4_unicode_ci';
         });
     }
 

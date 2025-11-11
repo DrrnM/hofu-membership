@@ -10,10 +10,22 @@ return new class extends Migration
     {
         Schema::create('transaksi', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('member_id')->nullable()->constrained('members')->onDelete('set null');
+            
+            // id_member di tabel members adalah VARCHAR, jadi kita sesuaikan:
+            $table->string('member_id', 36)->nullable();
+
             $table->integer('total_pembelian')->default(0);
             $table->integer('poin_didapat')->default(0);
             $table->timestamps();
+
+            // Pastikan engine InnoDB agar FK berfungsi
+            $table->engine = 'InnoDB';
+
+            // Relasi ke tabel members
+            $table->foreign('member_id')
+                  ->references('id_member')
+                  ->on('members')
+                  ->onDelete('set null');
         });
     }
 
