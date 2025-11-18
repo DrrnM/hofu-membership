@@ -8,25 +8,24 @@ use Illuminate\Support\Facades\Auth;
 
 class MemberController extends Controller
 {
-
     public function index(Request $request)
     {
         $search = $request->input('search');
 
         $members = Member::when($search, function ($query, $search) {
-            return $query->where('id_member', 'like', "%{$search}%");
+            return $query->where('id_member', 'like', "%{$search}%")
+                         ->orWhere('nama', 'like', "%{$search}%")
+                         ->orWhere('no_hp', 'like', "%{$search}%");
         })->get();
 
         return view('Member.index', compact('members'));
     }
-
 
     public function create()
     {
         return view('Member.create');
     }
 
-    // 💾 STORE
     public function store(Request $request)
     {
         $request->validate([
@@ -35,36 +34,37 @@ class MemberController extends Controller
             'poin' => 'nullable|integer|min:0',
         ]);
 
-        // 🔢 Random ID Member 3 digit unik
+        // Generate unique ID
         do {
             $randomId = rand(100, 999);
         } while (Member::where('id_member', $randomId)->exists());
+
+        $poin = $request->poin ?? 0;
+        $tipeLangganan = Member::getTierByPoin($poin);
 
         Member::create([
             'id_member' => $randomId,
             'nama' => $request->nama,
             'no_hp' => $request->no_hp,
-            'poin' => $request->poin ?? 0,
+            'poin' => $poin,
+            'tipe_langganan' => $tipeLangganan, 
         ]);
 
-        return redirect()->route('members.index')->with('success', 'Member berhasil ditambahkan!');
+        return redirect()->route('members.index')->with('success', 'Member berhasil ditambahkan! Tier: ' . ucfirst($tipeLangganan));
     }
 
-    // 👁️ SHOW (Owner & Kasir bisa)
     public function show($id)
     {
         $member = Member::where('id_member', $id)->firstOrFail();
         return view('Member.show', compact('member'));
     }
 
-    // ✏️ EDIT (Owner & Kasir bisa)
     public function edit($id)
     {
         $member = Member::where('id_member', $id)->firstOrFail();
         return view('Member.edit', compact('member'));
     }
 
-    // 🔄 UPDATE (Owner & Kasir bisa)
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -74,11 +74,28 @@ class MemberController extends Controller
         ]);
 
         $member = Member::where('id_member', $id)->firstOrFail();
+        
+        // Simpan tier lama sebelum update
+        $oldTier = $member->tipe_langganan;
+        
+        // Update data member
         $member->update($request->only(['nama', 'no_hp', 'poin']));
+        
+        // Update tier otomatis (tanpa menyimpan return value)
+        $member->updateTierOtomatis();
+        
+        // Refresh data untuk mendapatkan tier terbaru
+        $member->refresh();
+        $newTier = $member->tipe_langganan;
+        
+        // Buat pesan sukses
+        $message = 'Data member berhasil diperbarui!';
+        if ($oldTier !== $newTier) {
+            $message .= ' Tier berubah menjadi: ' . $member->getLabelLangganan();
+        }
 
-        return redirect()->route('members.index')->with('success', 'Data member berhasil diperbarui!');
+        return redirect()->route('members.index')->with('success', $message);
     }
-
 
     public function destroy($id)
     {

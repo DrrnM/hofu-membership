@@ -6,7 +6,7 @@
 @section('content')
 <div class="card shadow-sm border-0 p-4" style="background-color:#eaf6ff;">
 
-    {{-- ✅ Notifikasi sukses --}}
+
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
@@ -14,9 +14,9 @@
         </div>
     @endif
 
-    {{-- 📊 Tabel Data Poin --}}
+
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold text-primary mb-0">💎 Daftar Poin Member</h4>
+        <h4 class="fw-bold text-primary mb-0">Daftar Poin Member</h4>
     </div>
 
     <table class="table table-bordered table-hover align-middle text-center shadow-sm">

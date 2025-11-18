@@ -11,12 +11,13 @@ class Poin extends Model
 
     protected $fillable = [
         'member_id',
-        'jumlah_poin',
+        'jumlah_poin', 
         'keterangan',
     ];
 
+    // PERBAIKAN: Specify foreign key dan owner key
     public function member()
     {
-        return $this->belongsTo(Member::class);
+        return $this->belongsTo(Member::class, 'member_id', 'id_member');
     }
 }

@@ -33,7 +33,7 @@
                 <a href="{{ route('owner.reward.edit', $r->id_reward) }}" class="btn btn-warning btn-sm">Edit</a>
                 <form action="{{ route('owner.reward.destroy', $r->id_reward) }}" method="POST" class="d-inline">
                     @csrf @method('DELETE')
-                    <button onclick="return confirm('Yakin hapus reward ini?')" class="btn btn-danger btn-sm">🗑️</button>
+                    <button onclick="return confirm('Yakin hapus reward ini?')" class="btn btn-danger btn-sm">Hapus</button>
                 </form>
             </td>
         </tr>

@@ -40,7 +40,7 @@
         {{-- Tombol --}}
         <div class="d-flex justify-content-between mt-4">
             <a href="{{ route('poins.index') }}" class="btn btn-secondary px-4">⬅ Kembali</a>
-            <button type="submit" class="btn btn-primary px-4">💾 Simpan Perubahan</button>
+            <button type="submit" class="btn btn-primary px-4">Simpan Perubahan</button>
         </div>
     </form>
 </div>

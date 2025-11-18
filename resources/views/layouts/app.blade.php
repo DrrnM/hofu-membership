@@ -13,7 +13,6 @@
       display: flex;
     }
 
-    /* Sidebar */
     .sidebar {
       width: 220px;
       height: 100vh;
@@ -54,7 +53,6 @@
       border-top: 1px solid rgba(255, 255, 255, 0.3);
     }
 
-    /* Main Content */
     .main {
       margin-left: 220px;
       width: calc(100% - 220px);
@@ -90,11 +88,22 @@
     <div>
       <h3>SIHC</h3>
       <nav>
-        <a href="{{ url('/owner/dashboard') }}" class="{{ request()->is('owner/dashboard') ? 'active' : '' }}">Home</a>
-        <a href="{{ route('members.index') }}" class="{{ request()->is('members*') ? 'active' : '' }}">Member</a>
-        <a href="{{ route('poins.index')}}">Poin</a>
-        <a href="{{ route('owner.reward.index') }}" class="{{ request()->is('owner/reward*') ? 'active' : '' }}">Reward</a>
-        <a href="{{ route('owner.laporan.index') }}" class="{{ request()->is('owner/laporan*') ? 'active' : '' }}">Laporan</a>
+        @if(Auth::check() && Auth::user()->username === 'owner')
+          <a href="{{ url('/owner/dashboard') }}" class="{{ request()->is('owner/dashboard') ? 'active' : '' }}">Home</a>
+          <a href="{{ route('members.index') }}" class="{{ request()->is('members*') ? 'active' : '' }}">Member</a>
+          <a href="{{ route('poins.index')}}">Poin</a>
+          <a href="{{ route('owner.reward.index') }}" class="{{ request()->is('owner/reward*') ? 'active' : '' }}">Reward</a>
+          <a href="{{ route('owner.laporan.index') }}" class="{{ request()->is('owner/laporan*') ? 'active' : '' }}">Laporan</a>
+        
+        @elseif(Auth::check() && Auth::user()->username === 'kasir')
+          <a href="{{ url('/kasir/dashboard') }}" class="{{ request()->is('kasir/dashboard') ? 'active' : '' }}">Home</a>
+          <a href="{{ route('members.index') }}" class="{{ request()->is('members*') ? 'active' : '' }}">Member</a>
+          <a href="{{ route('poins.index')}}">Poin</a>
+        
+        @else
+          <a href="{{ url('/') }}">Home</a>
+          <a href="{{ route('members.index') }}">Member</a>
+        @endif
       </nav>
     </div>
     <div class="logout">
@@ -105,9 +114,18 @@
   </aside>
 
   <main class="main">
-    @if(request()->is('owner/dashboard'))
+    @if(Auth::check() && (request()->is('owner/dashboard') || request()->is('kasir/dashboard') || request()->is('/')))
       <div class="welcome">
-        <h5 class="m-0">Selamat Datang, {{ Auth::user()->username ?? 'Owner' }} ☕</h5>
+        <h5 class="m-0">
+          Selamat Datang, {{ Auth::user()->username }} 
+          @if(Auth::user()->username === 'owner')
+            👑
+          @elseif(Auth::user()->username === 'kasir')
+            💰
+          @else
+            👋
+          @endif
+        </h5>
       </div>
     @endif
 

@@ -13,7 +13,6 @@
             display: flex;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 220px;
             background: linear-gradient(180deg, #5cbdf7, #84fab0);
@@ -111,10 +110,6 @@
                 @csrf
                 <button class="btn btn-sm btn-outline-danger">Logout</button>
             </form>
-        </div>
-
-        <div class="image-banner">
-            <img src="{{ asset('images/hofu.jpg') }}" alt="Hofu Coffee">
         </div>
 
         <div class="dashboard-cards">
