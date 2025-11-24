@@ -30,9 +30,9 @@ class LoginController extends Controller
             ])->onlyInput('username');
         }
 
-        // FIX: Handle both bcrypt and plain password
+      
         if ($this->checkPassword($request->password, $user->password)) {
-            // If password is plain text, hash it and update
+         
             if ($this->isPlainPassword($user->password)) {
                 $user->password = Hash::make($request->password);
                 $user->save();

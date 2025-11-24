@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('member_id', 36)->nullable();
 
             $table->integer('total_pembelian')->default(0);
-            $table->integer('poin_didapat')->default(0);
+            $table->integer('jumlah_poin')->default(0);
             $table->timestamps();
 
             // Pastikan engine InnoDB agar FK berfungsi

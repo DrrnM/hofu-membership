@@ -16,12 +16,12 @@ class Transaksi extends Model
 
     protected $fillable = [
         'id_member',
-        'tanggal_transaksi',
+        'created_at',
         'jumlah_poin',
         'total_harga',
     ];
 
-    // 🔗 Relasi balik ke Member
+
     public function member()
     {
         return $this->belongsTo(Member::class, 'id_member', 'id_member');

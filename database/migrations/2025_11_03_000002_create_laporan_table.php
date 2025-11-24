@@ -9,10 +9,10 @@ return new class extends Migration {
     {
         Schema::create('laporan', function (Blueprint $table) {
             $table->id();
-            $table->string('judul_laporan');          // Judul laporan (misal: "Penukaran Reward")
-            $table->date('tanggal_laporan');          // Tanggal laporan
-            $table->text('keterangan')->nullable();   // Keterangan tambahan
-            $table->decimal('total_transaksi', 10, 2)->default(0); // Nilai total transaksi
+            $table->string('judul_laporan');          
+            $table->date('tanggal_laporan');          
+            $table->text('keterangan')->nullable();   
+            $table->decimal('total_transaksi', 10, 2)->default(0); 
             $table->timestamps();
         });
     }

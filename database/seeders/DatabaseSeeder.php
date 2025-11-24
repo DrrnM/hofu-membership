@@ -11,6 +11,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Seed Users
         User::firstOrCreate(
             ['username' => 'owner'],
             ['password' => Hash::make('owner123')]
@@ -22,5 +23,7 @@ class DatabaseSeeder extends Seeder
         );
 
         Member::factory()->count(20)->create();
+
+        $this->call(PoinSeeder::class);
     }
 }

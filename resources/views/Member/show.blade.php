@@ -16,7 +16,7 @@
 
         <div class="d-flex justify-content-between mt-4">
             <a href="{{ route('members.index') }}" class="btn btn-secondary">Kembali</a>
-            <a href="{{ route('members.edit', ['id' => $member->id_member]) }}" class="btn btn-warning">✏️ Edit</a>
+            <a href="{{ route('members.edit', ['id_member' => $member->id_member]) }}" class="btn btn-warning">Edit</a>
         </div>
     </div>
 </div>

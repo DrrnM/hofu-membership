@@ -7,7 +7,7 @@
     <div class="card shadow-sm p-4" style="background-color:#eaf6ff; max-width:600px; margin:auto;">
         <h4 class="fw-bold text-primary mb-4 text-center">Edit Member</h4>
 
-        <form action="{{ route('members.update', ['id' => $member->id_member]) }}" method="POST">
+        <form action="{{ route('members.update', ['id_member' => $member->id_member]) }}" method="POST">
             @csrf
             @method('PUT')
 
