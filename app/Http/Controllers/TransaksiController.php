@@ -4,49 +4,122 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
 use App\Models\Member;
+use App\Models\Poin;
 use Illuminate\Http\Request;
 
 class TransaksiController extends Controller
 {
-    /**
-     * Display listing for reports (OWNER & KASIR)
-     */
-    public function index()
-    {
-        $transactions = Transaksi::with('member')
-            ->orderBy('tanggal_transaksi', 'desc')
-            ->paginate(20);
 
-        return view('transactions.index', compact('transactions'));
+    public function create()
+    {
+        $members = Member::orderBy('nama')->get();
+        return view('transactions.create', compact('members'));
     }
 
     /**
-     * Today's transactions report (KASIR)
+     * ✅ METHOD BARU: Store new transaction (KASIR)
      */
-    public function todayTransactions()
+    public function store(Request $request)
     {
-        $today = now()->format('Y-m-d');
-        $transactions = Transaksi::with('member')
-            ->whereDate('tanggal_transaksi', $today)
-            ->orderBy('tanggal_transaksi', 'desc')
-            ->get();
+        $request->validate([
+            'id_member' => 'required|exists:members,id_member',
+            'total_belanja' => 'required|numeric|min:0',
+            'tanggal_transaksi' => 'required|date'
+        ]);
 
-        $totalPoin = $transactions->sum('jumlah_poin');
-        $totalTransactions = $transactions->count();
+        try {
+            $member = Member::where('id_member', $request->id_member)->firstOrFail();
 
-        return view('transactions.today', compact('transactions', 'totalPoin', 'totalTransactions'));
+            // ✅ BUAT TRANSAKSI
+            $transaksi = Transaksi::create([
+                'id_member' => $request->id_member,
+                'total_belanja' => $request->total_belanja,
+                'tanggal_transaksi' => $request->tanggal_transaksi,
+                'status' => 'selesai'
+            ]);
+
+            // ✅ UPDATE POIN MEMBER: 10.000 = 1 POIN
+            $poinBertambah = floor($request->total_belanja / 10000);
+            
+            if ($poinBertambah > 0) {
+                $poinSebelum = $member->poin;
+                $member->poin += $poinBertambah;
+                $member->updateTierOtomatis();
+                $member->save();
+
+                // ✅ SIMPAN HISTORY POIN
+                Poin::create([
+                    'member_id' => $request->id_member,
+                    'jumlah_poin' => $poinBertambah,
+                    'keterangan' => 'Poin dari transaksi Rp ' . number_format($request->total_belanja),
+                    'created_at' => now()
+                ]);
+
+                $message = "Transaksi berhasil! Poin bertambah: {$poinBertambah} poin";
+                $message .= " ({$poinSebelum} → {$member->poin})";
+            } else {
+                $message = "Transaksi berhasil! Belanja kurang dari Rp 10.000, tidak dapat poin";
+            }
+
+            return redirect()->route('transactions.today')
+                ->with('success', $message);
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal membuat transaksi: ' . $e->getMessage());
+        }
     }
 
     /**
-     * Transaction history for specific member
+     * ✅ METHOD BARU: Quick transaction (tanpa form)
      */
-    public function memberHistory($id_member)
+    public function quickStore(Request $request)
     {
-        $member = Member::where('id_member', $id_member)->firstOrFail();
-        $transactions = Transaksi::where('id_member', $id_member)
-            ->orderBy('tanggal_transaksi', 'desc')
-            ->get();
+        $request->validate([
+            'id_member' => 'required|exists:members,id_member',
+            'total_belanja' => 'required|numeric|min:0'
+        ]);
 
-        return view('transactions.member-history', compact('member', 'transactions'));
+        try {
+            $member = Member::where('id_member', $request->id_member)->firstOrFail();
+
+            // ✅ BUAT TRANSAKSI CEPAT
+            $transaksi = Transaksi::create([
+                'id_member' => $request->id_member,
+                'total_belanja' => $request->total_belanja,
+                'tanggal_transaksi' => now(),
+                'status' => 'selesai'
+            ]);
+
+            // ✅ 10.000 = 1 POIN
+            $poinBertambah = floor($request->total_belanja / 10000);
+            
+            if ($poinBertambah > 0) {
+                $member->poin += $poinBertambah;
+                $member->updateTierOtomatis();
+                $member->save();
+
+                Poin::create([
+                    'member_id' => $request->id_member,
+                    'jumlah_poin' => $poinBertambah,
+                    'keterangan' => 'Poin dari transaksi cepat Rp ' . number_format($request->total_belanja),
+                    'created_at' => now()
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $poinBertambah > 0 ? 
+                    "Transaksi berhasil! +{$poinBertambah} poin" : 
+                    "Transaksi berhasil!",
+                'poin_bertambah' => $poinBertambah,
+                'poin_sekarang' => $member->poin
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

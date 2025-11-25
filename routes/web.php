@@ -16,24 +16,28 @@ Route::get('/', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+// ✅ ROUTES YANG BISA DIAKSES OLEH SEMUA ROLE (SETELAH LOGIN)
 Route::middleware(['auth'])->group(function () {
+    // DASHBOARD DENGAN ROLE PROTECTION
+    Route::get('/owner/dashboard', [OwnerController::class, 'dashboard'])
+        ->middleware('owner')
+        ->name('owner.dashboard');
 
+    Route::get('/kasir/dashboard', [KasirController::class, 'dashboard'])
+        ->middleware('kasir')
+        ->name('kasir.dashboard');
 
-    Route::get('/owner/dashboard', [OwnerController::class, 'dashboard'])->name('owner.dashboard');
-    Route::get('/kasir/dashboard', [KasirController::class, 'dashboard'])->name('kasir.dashboard');
-
+    // ✅ ROUTES YANG BISA DIAKSES OLEH OWNER & KASIR
     Route::get('/members', [MemberController::class, 'index'])->name('members.index');
     Route::get('/members/create', [MemberController::class, 'create'])->name('members.create');
     Route::post('/members/store', [MemberController::class, 'store'])->name('members.store');
     Route::get('/members/{id_member}', [MemberController::class, 'show'])->name('members.show');
     Route::get('/members/{id_member}/edit', [MemberController::class, 'edit'])->name('members.edit');
     Route::put('/members/{id_member}', [MemberController::class, 'update'])->name('members.update');
-
-
     Route::delete('/members/{id_member}', [MemberController::class, 'destroy'])->name('members.destroy');
 
     Route::get('/poins', [PoinController::class, 'index'])->name('poins.index');
-    Route::get('/poins/create', [PoinController::class, 'c'])->name('poins.create');
+    Route::get('/poins/create', [PoinController::class, 'create'])->name('poins.create');
     Route::post('/poins', [PoinController::class, 'store'])->name('poins.store');
     Route::get('/poins/history', [PoinController::class, 'history'])->name('poins.history');
 
@@ -45,7 +49,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/transactions', [TransaksiController::class, 'store'])->name('transactions.store');
 });
 
-Route::prefix('owner')->middleware(['auth'])->group(function () {
+// ✅ ROUTES KHUSUS OWNER SAJA
+Route::prefix('owner')->middleware(['auth', 'owner'])->group(function () {
     Route::get('/reward', [RewardController::class, 'index'])->name('owner.reward.index');
     Route::get('/reward/create', [RewardController::class, 'create'])->name('owner.reward.create');
     Route::post('/reward', [RewardController::class, 'store'])->name('owner.reward.store');
@@ -58,22 +63,25 @@ Route::prefix('owner')->middleware(['auth'])->group(function () {
     Route::get('/laporan/create', [LaporanController::class, 'create'])->name('owner.laporan.create');
     Route::post('/laporan', [LaporanController::class, 'store'])->name('owner.laporan.store');
     Route::get('/laporan/{id}/download', [LaporanController::class, 'download'])->name('owner.laporan.download');
+    Route::get('/laporan/{id}/view', [LaporanController::class, 'view'])->name('owner.laporan.view');
+    Route::get('/laporan/scan', [LaporanController::class, 'scanExistingFiles'])->name('owner.laporan.scan');
     Route::delete('/laporan/{id}', [LaporanController::class, 'destroy'])->name('owner.laporan.destroy');
 
-    Route::get('/poins', [PoinController::class, 'index'])->name('poins.index');
+
     Route::get('/poins/{id_member}/edit', [PoinController::class, 'edit'])->name('poins.edit');
     Route::put('/poins/{id_member}', [PoinController::class, 'update'])->name('poins.update');
     Route::get('/members/{id_member}/update-poin', [PoinController::class, 'updatePoinForm'])->name('members.update-poin');
     Route::post('/members/{id_member}/update-poin', [PoinController::class, 'updatePoin'])->name('members.update-poin.store');
 });
 
-
-Route::prefix('kasir')->middleware(['auth'])->group(function () {
+// ✅ ROUTES KHUSUS KASIR SAJA
+Route::prefix('kasir')->middleware(['auth', 'kasir'])->group(function () {
     Route::get('/dashboard', [KasirController::class, 'dashboard'])->name('kasir.dashboard');
     Route::get('/quick-poin', [PoinController::class, 'quickInput'])->name('kasir.quick-poin');
     Route::post('/process-poin', [PoinController::class, 'processQuickPoin'])->name('kasir.process-poin');
 });
 
+// Debug route
 Route::get('/check', function () {
     dd(Auth::user());
 })->withoutMiddleware(['auth']);

@@ -9,19 +9,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('transaksi', function (Blueprint $table) {
-            $table->id();
-            
-            // id_member di tabel members adalah VARCHAR, jadi kita sesuaikan:
-            $table->string('member_id', 36)->nullable();
+            $table->id_transaksi();
+            $table->string('id_member', 36)->nullable();
 
             $table->integer('total_pembelian')->default(0);
             $table->integer('jumlah_poin')->default(0);
             $table->timestamps();
 
-            // Pastikan engine InnoDB agar FK berfungsi
             $table->engine = 'InnoDB';
 
-            // Relasi ke tabel members
             $table->foreign('member_id')
                   ->references('id_member')
                   ->on('members')

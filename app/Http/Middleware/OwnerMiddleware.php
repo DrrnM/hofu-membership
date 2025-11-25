@@ -9,16 +9,19 @@ use Symfony\Component\HttpFoundation\Response;
 
 class OwnerMiddleware
 {
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
         if (!Auth::check()) {
-            return redirect()->route('login');
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
         }
 
-        if (Auth::user()->username !== 'owner') {
-            abort(403, 'Unauthorized access. Owner only.');
+
+        $user = Auth::user();
+
+        if ($user->username === 'owner') {
+            return $next($request);
         }
 
-        return $next($request);
+        abort(403, 'Akses ditolak. Hanya owner yang dapat mengakses.');
     }
 }

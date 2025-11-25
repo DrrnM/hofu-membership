@@ -14,13 +14,13 @@ class Laporan extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        'judul_laporan',
-        'tanggal_laporan', 
-        'keterangan',
-        'total_transaksi',
-        'file_path',
+        'judul_laporan', 
         'file_name',
-        'created_at',
-        'updated_at'
+        'file_path',
+        'total_transaksi',
+        'total_data', 
+        'tanggal_laporan',
+        'periode_laporan', 
+        'keterangan'
     ];
 }

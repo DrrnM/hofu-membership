@@ -11,15 +11,10 @@ class KasirMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check()) {
-            return redirect()->route('login');
+        if (Auth::check() && Auth::user()->username === 'kasir') {
+            return $next($request);
         }
 
-
-        if (Auth::user()->username !== 'kasir') {
-            abort(403, 'Unauthorized access. Kasir only.');
-        }
-
-        return $next($request);
+        abort(403, 'Unauthorized access. Kasir role required.');
     }
 }

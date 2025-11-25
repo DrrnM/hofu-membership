@@ -15,12 +15,12 @@ class Transaksi extends Model
     protected $keyType = 'int';
 
     protected $fillable = [
-        'id_member',
-        'created_at',
+        'member_id',
+        'total_pembelian', 
         'jumlah_poin',
-        'total_harga',
+        'created_at',
+        'updated_at'
     ];
-
 
     public function member()
     {
