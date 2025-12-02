@@ -10,13 +10,12 @@ return new class extends Migration
     {
         Schema::create('poins', function (Blueprint $table) {
             $table->id();
-            $table->string('member_id', 36);
+            $table->string('member_id', 3);
             $table->integer('jumlah_poin')->default(0);
-            $table->string('keterangan')->nullable();
             $table->timestamps();
 
             $table->foreign('member_id')
-                  ->references('id_member')
+                  ->references('member_id')
                   ->on('members')
                   ->onDelete('cascade');
         });

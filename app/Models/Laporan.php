@@ -23,4 +23,10 @@ class Laporan extends Model
         'periode_laporan', 
         'keterangan'
     ];
+    protected $casts = [
+        'tanggal_laporan' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
 }

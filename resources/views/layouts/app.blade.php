@@ -92,10 +92,9 @@
             margin-bottom: 20px;
         }
 
-        /* Style untuk auto-dismiss alert */
-        .alert-auto-dismiss {
-            position: relative;
-            animation: slideIn 0.3s ease, fadeOut 0.5s ease 4.5s forwards;
+        /* Animasi masuk saja, TANPA auto-hide */
+        .alert-animated {
+            animation: slideIn 0.3s ease;
         }
 
         @keyframes slideIn {
@@ -103,18 +102,10 @@
                 transform: translateY(-20px);
                 opacity: 0;
             }
+
             to {
                 transform: translateY(0);
                 opacity: 1;
-            }
-        }
-
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-            }
-            to {
-                opacity: 0;
             }
         }
 
@@ -184,30 +175,30 @@
             </div>
         @endif
 
-        {{-- NOTIFICATION SECTION --}}
-        @if(session('success'))
-            <div class="alert alert-success alert-auto-dismiss alert-dismissible fade show" role="alert">
+
+        @if (session('success'))
+            <div class="alert alert-success alert-animated alert-dismissible fade show" role="alert">
                 ✅ {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
 
-        @if(session('error'))
-            <div class="alert alert-danger alert-auto-dismiss alert-dismissible fade show" role="alert">
+        @if (session('error'))
+            <div class="alert alert-danger alert-animated alert-dismissible fade show" role="alert">
                 ❌ {{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
 
-        @if(session('warning'))
-            <div class="alert alert-warning alert-auto-dismiss alert-dismissible fade show" role="alert">
+        @if (session('warning'))
+            <div class="alert alert-warning alert-animated alert-dismissible fade show" role="alert">
                 ⚠️ {{ session('warning') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
 
-        @if(session('info'))
-            <div class="alert alert-info alert-auto-dismiss alert-dismissible fade show" role="alert">
+        @if (session('info'))
+            <div class="alert alert-info alert-animated alert-dismissible fade show" role="alert">
                 ℹ️ {{ session('info') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
@@ -228,24 +219,34 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        function confirmDelete(button, message = 'Yakin ingin menghapus data ini?') {
-            if (confirm(message)) {
-                button.closest('form').submit();
-            }
-        }
 
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const autoAlerts = document.querySelectorAll('.alert-auto-dismiss');
-            
-            autoAlerts.forEach(function(alert) {
-                // Bootstrap auto dismiss
-                const bsAlert = new bootstrap.Alert(alert);
-                setTimeout(() => {
-                    bsAlert.close();
-                }, 3000);
-            });
+
+            const alerts = document.querySelectorAll('.alert');
+
+            if (alerts.length > 1) {
+                console.warn(`⚠️ Found ${alerts.length} alerts, removing duplicates...`);
+
+
+                let keepAlert = null;
+                const priority = ['danger', 'error', 'warning', 'success', 'info'];
+
+                for (const type of priority) {
+                    const alert = document.querySelector(`.alert-${type}, .alert-danger`);
+                    if (alert) {
+                        keepAlert = alert;
+                        break;
+                    }
+                }
+
+
+                alerts.forEach(alert => alert.remove());
+
+                if (keepAlert && keepAlert.parentNode) {
+                    keepAlert.parentNode.insertBefore(keepAlert, keepAlert.parentNode.firstChild);
+                }
+            }
         });
     </script>
 </body>

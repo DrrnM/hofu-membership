@@ -16,7 +16,6 @@ Route::get('/', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// ✅ ROUTES YANG BISA DIAKSES OLEH SEMUA ROLE (SETELAH LOGIN)
 Route::middleware(['auth'])->group(function () {
     // DASHBOARD DENGAN ROLE PROTECTION
     Route::get('/owner/dashboard', [OwnerController::class, 'dashboard'])
@@ -26,6 +25,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/kasir/dashboard', [KasirController::class, 'dashboard'])
         ->middleware('kasir')
         ->name('kasir.dashboard');
+
+    Route::get('/kasir/transaksi', [KasirController::class, 'historyPoin']) // atau buat method khusus
+        ->name('kasir.transaksi');
+
+    Route::get('/dashoard/chart-data', [DashboardController::class, 'getChartDataApi']);
+
+    Route::get('/owner/chart-data', [OwnerController::class, 'chartData'])
+        ->middleware('owner')
+        ->name('owner.chart.data');
 
     // ✅ ROUTES YANG BISA DIAKSES OLEH OWNER & KASIR
     Route::get('/members', [MemberController::class, 'index'])->name('members.index');
@@ -49,7 +57,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/transactions', [TransaksiController::class, 'store'])->name('transactions.store');
 });
 
-// ✅ ROUTES KHUSUS OWNER SAJA
 Route::prefix('owner')->middleware(['auth', 'owner'])->group(function () {
     Route::get('/reward', [RewardController::class, 'index'])->name('owner.reward.index');
     Route::get('/reward/create', [RewardController::class, 'create'])->name('owner.reward.create');

@@ -48,7 +48,7 @@
                     <tr>
                         <td>{{ $index + $members->firstItem() }}</td>
                         <td>
-                            <strong>{{ $member->id_member }}</strong>
+                            <strong>{{ $member->member_id }}</strong>
                         </td>
                         <td class="text-start">
                             {{ $member->nama }}
@@ -67,7 +67,7 @@
                             </span>
                         </td>
                         <td>
-                            <a href="{{ route('members.update-poin', $member->id_member) }}"
+                            <a href="{{ route('members.update-poin', $member->member_id) }}"
                                 class="btn btn-success btn-sm text-white">
                                 <i class="fas fa-plus-minus"></i> Update Poin
                             </a>

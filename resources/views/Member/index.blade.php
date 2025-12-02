@@ -31,7 +31,7 @@
             <tbody>
                 @forelse($members as $member)
                 <tr>
-                    <td class="fw-semibold">{{ $member->id_member }}</td>
+                    <td class="fw-semibold">{{ $member->member_id }}</td>
                     <td class="text-start">{{ $member->nama }}</td>
                     <td>{{ $member->no_hp }}</td>
                     <td>
@@ -39,11 +39,11 @@
                     </td>
                     <td>
                         <div class="d-flex gap-2 justify-content-center">
-                            <a href="{{ route('members.show', $member->id_member) }}" 
+                            <a href="{{ route('members.show', $member->member_id) }}" 
                                class="btn btn-info btn-sm text-white px-3">Tampil</a>
-                            <a href="{{ route('members.edit', $member->id_member) }}" 
+                            <a href="{{ route('members.edit', $member->member_id) }}" 
                                class="btn btn-warning btn-sm px-3">Ubah</a>
-                            <form action="{{ route('members.destroy', $member->id_member) }}" 
+                            <form action="{{ route('members.destroy', $member->member_id) }}" 
                                   method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')

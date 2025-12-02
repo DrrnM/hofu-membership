@@ -18,13 +18,51 @@ class KasirController extends Controller
         $totalPoin = Member::sum('poin');
         $totalTransaksi = Transaksi::whereDate('created_at', today())->count();
 
-        return view('owner.dashboard', compact(
-            'totalMember', 
-            'totalPoin', 
+        $chartData = $this->getKasirChartData();
+
+        return view('kasir.dashboard', compact(
+            'totalMember',
+            'totalPoin',
             'totalTransaksi',
+            'chartData'
         ));
     }
 
+    private function getKasirChartData()
+    {
+        // GENERATE DATA 7 HARI TERAKHIR (SELALU ADA DATA)
+        $labels = [];
+        $poinData = [];
+        $transaksiData = [];
+
+        // Buat array untuk 7 hari terakhir
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $formattedDate = $date->format('Y-m-d');
+            $labelDate = $date->format('d M');
+
+            $labels[] = $labelDate;
+
+            // Hitung data hari ini
+            $totalPoinHariIni = Transaksi::whereDate('created_at', $formattedDate)
+                ->sum('jumlah_poin');
+            $totalTransaksiHariIni = Transaksi::whereDate('created_at', $formattedDate)
+                ->count();
+
+            $poinData[] = $totalPoinHariIni;
+            $transaksiData[] = $totalTransaksiHariIni;
+        }
+
+        // SELALU return has_data = true
+        return [
+            'labels' => $labels,
+            'poin' => $poinData,
+            'transaksi' => $transaksiData,
+            'has_data' => true, // SELALU TRUE
+            'total_poin_week' => array_sum($poinData),
+            'total_transaksi_week' => array_sum($transaksiData)
+        ];
+    }
 
     public function listMember()
     {
@@ -58,15 +96,15 @@ class KasirController extends Controller
         ]);
 
         return redirect()->route('kasir.member.list')
-                        ->with('success', 'Member berhasil ditambahkan!');
+            ->with('success', 'Member berhasil ditambahkan!');
     }
 
     public function showMember($id)
     {
         $member = Member::where('id_member', $id)->firstOrFail();
         $transactions = Transaksi::where('id_member', $id)
-                               ->orderBy('created_at', 'desc')
-                               ->get();
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return view('kasir.member-show', compact('member', 'transactions'));
     }
@@ -116,14 +154,14 @@ class KasirController extends Controller
         ]);
 
         return redirect()->route('kasir.poin.input')
-                        ->with('success', $message);
+            ->with('success', $message);
     }
 
     public function historyPoin()
     {
         $transactions = Transaksi::with('member')
-                               ->orderBy('created_at', 'desc')
-                               ->get();
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return view('kasir.poin-history', compact('transactions'));
     }

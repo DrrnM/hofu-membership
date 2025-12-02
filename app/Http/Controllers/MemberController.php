@@ -13,7 +13,7 @@ class MemberController extends Controller
         $search = $request->input('search');
 
         $members = Member::when($search, function ($query, $search) {
-            return $query->where('id_member', 'like', "%{$search}%")
+            return $query->where('member_id', 'like', "%{$search}%")
                 ->orWhere('nama', 'like', "%{$search}%");
         })->orderBy('created_at', 'desc')->paginate(10);
 
@@ -36,13 +36,13 @@ class MemberController extends Controller
         // Generate unique ID
         do {
             $randomId = rand(100, 999);
-        } while (Member::where('id_member', $randomId)->exists());
+        } while (Member::where('member_id', $randomId)->exists());
 
         $poin = $request->poin ?? 0;
         $tipeLangganan = Member::getTierByPoin($poin);
 
         Member::create([
-            'id_member' => $randomId,
+            'member_id' => $randomId,
             'nama' => $request->nama,
             'no_hp' => $request->no_hp,
             'poin' => $poin,
@@ -54,68 +54,69 @@ class MemberController extends Controller
 
     public function show($id)
     {
-        $member = Member::where('id_member', $id)->firstOrFail();
+        $member = Member::where('member_id', $id)->firstOrFail();
         return view('Member.show', compact('member'));
     }
 
     public function edit($id)
     {
-        $member = Member::where('id_member', $id)->firstOrFail();
+        $member = Member::where('member_id', $id)->firstOrFail();
         return view('Member.edit', compact('member'));
     }
 
-    public function update(Request $request, $id)
+public function update(Request $request, $id)
 {
     $request->validate([
         'nama' => 'required|string|max:100',
-        'no_hp' => 'required|string|max:20|unique:members,no_hp,' . $id . ',id_member',
-        'poin' => 'nullable|integer|min:0',
+        'no_hp' => 'required|string|max:20|unique:members,no_hp,' . $id . ',member_id',
+        'poin' => 'nullable|integer|min:0|max:600', 
     ]);
 
-    $member = Member::where('id_member', $id)->firstOrFail();
-    
-    // ✅ DEBUG: Lihat data sebelum update
-    logger("=== DEBUG UPDATE MEMBER ===");
-    logger("Member: " . $member->id_member);
-    logger("Poin Lama: " . $member->poin);
-    logger("Tier Lama: " . $member->tipe_langganan);
-    logger("Poin Baru: " . ($request->poin ?? 0));
-    logger("Tier Seharusnya: " . Member::getTierByPoin($request->poin ?? 0));
+    $member = Member::where('member_id', $id)->firstOrFail();
+
+    \Log::info("=== DEBUG UPDATE MEMBER ===");
+    \Log::info("Member: " . $member->member_id);
+    \Log::info("Poin Lama: " . $member->poin);
+    \Log::info("Tier Lama: " . $member->tipe_langganan);
+    \Log::info("Poin Request: " . ($request->poin ?? 0));
 
     $oldTier = $member->tipe_langganan;
+    $newPoin = $request->poin ?? 0;
     
-    // Update data member
-    $member->update([
+    $newTier = Member::getTierByPoin($newPoin);
+    \Log::info("Tier Baru yang Dihitung: " . $newTier);
+
+    $updateData = [
         'nama' => $request->nama,
         'no_hp' => $request->no_hp,
-        'poin' => $request->poin ?? 0,
-    ]);
+        'poin' => $newPoin,
+        'tipe_langganan' => $newTier, 
+    ];
+
+    \Log::info("Data untuk update: " . json_encode($updateData));
     
-    // Update tier
-    $newTier = Member::getTierByPoin($member->poin);
-    $member->update([
-        'tipe_langganan' => $newTier
-    ]);
+    $member->update($updateData);
+    
     
     $member->refresh();
-    
-    // ✅ DEBUG: Lihat data setelah update
-    logger("Tier Setelah Update: " . $member->tipe_langganan);
-    logger("Poin Setelah Update: " . $member->poin);
-    
+
+    \Log::info("Tier Setelah Update: " . $member->tipe_langganan);
+    \Log::info("Poin Setelah Update: " . $member->poin);
+    \Log::info("Poin Raw (database): " . $member->getRawOriginal('poin'));
+
     $message = 'Data member berhasil diperbarui!';
     if ($oldTier !== $newTier) {
-        $message .= ' Tier berubah menjadi: ' . ucfirst($newTier);
+        $message .= ' Tier berubah: ' . $member->getLabelLangganan();
     }
 
     return redirect()->route('members.index')->with('success', $message);
 }
     public function destroy($id)
     {
-        $member = Member::where('id_member', $id)->firstOrFail();
+        $member = Member::where('member_id', $id)->firstOrFail();
         $member->delete();
 
         return redirect()->route('members.index')->with('success', 'Member berhasil dihapus!');
     }
-    
+
 }

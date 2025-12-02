@@ -8,7 +8,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('members', function (Blueprint $table) {
-            $table->string('id_member', 3)->primary();  
+            $table->string('member_id', 3)->primary();  
             $table->string('nama');
             $table->string('no_hp')->unique();
             $table->integer('poin')->default(0);

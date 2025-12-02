@@ -14,7 +14,6 @@
                 Kembali
             </a>
         </div>
-
         @if ($errors->any())
             <div class="alert alert-danger">
                 <ul class="mb-0">
@@ -24,11 +23,8 @@
                 </ul>
             </div>
         @endif
-
         <form action="{{ route('owner.laporan.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            
-            <!-- ✅ TAMBAH INPUT JUDUL LAPORAN -->
             <div class="mb-3">
                 <label for="judul_laporan" class="form-label">Judul Laporan <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" id="judul_laporan" name="judul_laporan" 
@@ -45,8 +41,6 @@
                     <br><strong>Format CSV harus:</strong> ID Member, Total Pembelian, Tanggal
                 </div>
             </div>
-
-            <!-- ✅ INFO FORMAT FILE -->
             <div class="card bg-light mb-4">
                 <div class="card-body">
                     <h6 class="card-title">Format File yang Didukung:</h6>

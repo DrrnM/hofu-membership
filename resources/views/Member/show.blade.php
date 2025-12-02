@@ -8,7 +8,7 @@
         <h4 class="fw-bold text-primary mb-4 text-center">Detail Member</h4>
 
         <table class="table table-bordered bg-white">
-            <tr><th style="width:40%">ID Member</th><td>{{ $member->id_member }}</td></tr>
+            <tr><th style="width:40%">ID Member</th><td>{{ $member->member_id }}</td></tr>
             <tr><th>Nama</th><td>{{ $member->nama }}</td></tr>
             <tr><th>No HP</th><td>{{ $member->no_hp }}</td></tr>
             <tr><th>Poin</th><td><span class="badge bg-primary">{{ $member->poin }}</span></td></tr>
@@ -16,7 +16,7 @@
 
         <div class="d-flex justify-content-between mt-4">
             <a href="{{ route('members.index') }}" class="btn btn-secondary">Kembali</a>
-            <a href="{{ route('members.edit', ['id_member' => $member->id_member]) }}" class="btn btn-warning">Edit</a>
+            <a href="{{ route('members.edit', ['id_member' => $member->member_id]) }}" class="btn btn-warning">Edit</a>
         </div>
     </div>
 </div>

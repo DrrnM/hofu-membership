@@ -37,7 +37,6 @@ class RewardController extends Controller
         return redirect()->route('owner.reward.index')->with('success', 'Reward berhasil ditambahkan!');
     }
 
-    // ✅ TAMBAHKAN METHOD SHOW INI
     public function show($id)
     {
         $reward = Reward::findOrFail($id);

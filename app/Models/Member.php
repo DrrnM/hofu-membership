@@ -9,27 +9,21 @@ class Member extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'id_member';
+    protected $primaryKey = 'member_id';
     public $incrementing = false;
     protected $keyType = 'string';
 
     protected static function boot()
     {
         parent::boot();
-
-        static::saving(function ($member) {
-            if ($member->poin > 500) {
-                $member->poin = 500;
-            }
-        });
     }
 
     protected $fillable = [
-        'id_member',
-        'nama',
-        'no_hp',
-        'poin',
-        'tipe_langganan'
+        'member_id', 
+        'nama',      
+        'no_hp',    
+        'poin',      
+        'tipe_langganan' 
     ];
 
     public $timestamps = true;
@@ -66,9 +60,6 @@ class Member extends Model
         }
     }
 
-    /**
-     * ✅ METHOD TUNGGAL - update tier dan save ke database
-     */
     public function updateTierOtomatis()
     {
         $tierBaru = self::getTierByPoin($this->poin);
@@ -104,11 +95,11 @@ class Member extends Model
 
     public function poinHistory()
     {
-        return $this->hasMany(Poin::class, 'member_id', 'id_member');
+        return $this->hasMany(Poin::class, 'member_id', 'member_id');
     }
 
     public function transaksi()
     {
-        return $this->hasMany(Transaksi::class, 'id_member', 'id_member');
+        return $this->hasMany(Transaksi::class, 'member_id', 'member_id');
     }
 }
