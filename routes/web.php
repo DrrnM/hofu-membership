@@ -35,7 +35,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('owner')
         ->name('owner.chart.data');
 
-    // ✅ ROUTES YANG BISA DIAKSES OLEH OWNER & KASIR
+ 
     Route::get('/members', [MemberController::class, 'index'])->name('members.index');
     Route::get('/members/create', [MemberController::class, 'create'])->name('members.create');
     Route::post('/members/store', [MemberController::class, 'store'])->name('members.store');
