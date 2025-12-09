@@ -21,10 +21,6 @@
                 <input type="text" name="no_hp" class="form-control" value="{{ old('no_hp', $member->no_hp) }}" required>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Poin</label>
-                <input type="number" name="poin" class="form-control" value="{{ old('poin', $member->poin) }}" min="0">
-            </div>
 
             <div class="d-flex justify-content-between mt-4">
                 <a href="{{ route('members.index') }}" class="btn btn-secondary">⬅ Batal</a>

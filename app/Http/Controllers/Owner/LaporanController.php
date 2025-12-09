@@ -54,11 +54,13 @@ class LaporanController extends Controller
 
         $file = null;
         $filePath = null;
+        $tempFilePath = null; // ⬅️ TAMBAHKAN: File sementara
 
         try {
+            // 1. VALIDASI INPUT DASAR
             $request->validate([
                 'judul_laporan' => 'required|string|max:255',
-                'file_laporan' => 'required|file|mimes:csv|max:10240' // Hanya CSV
+                'file_laporan' => 'required|file|mimes:csv,txt|max:10240'
             ]);
 
             if (!$request->hasFile('file_laporan')) {
@@ -67,26 +69,69 @@ class LaporanController extends Controller
 
             $file = $request->file('file_laporan');
 
-            $extension = $file->getClientOriginalExtension();
-            if (strtolower($extension) !== 'csv') {
-                return back()->with('error', 'Hanya file CSV yang diperbolehkan.');
+            // 2. VALIDASI EKSTENSI
+            $extension = strtolower($file->getClientOriginalExtension());
+            $allowedExtensions = ['csv', 'txt'];
+
+            if (!in_array($extension, $allowedExtensions)) {
+                return back()->with('error', 'Hanya file CSV/TXT yang diperbolehkan.');
             }
 
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $filePath = $file->storeAs('laporan_files', $fileName, 'public');
+            // 3. VALIDASI UKURAN FILE & KONTEN SEBELUM SIMPAN
+            $fileSize = $file->getSize();
+            if ($fileSize == 0) {
+                return back()->with('error', 'File kosong (0 byte).');
+            }
 
+            // Baca sample konten untuk validasi awal
+            $fileContent = file_get_contents($file->getRealPath());
+            if (empty(trim($fileContent))) {
+                return back()->with('error', 'File tidak berisi data.');
+            }
 
-            $this->validateFileNotEmpty($filePath);
+            // 4. SIMPAN KE TEMP FOLDER DULU (bukan langsung ke public)
+            $tempFileName = 'temp_' . time() . '_' . $file->getClientOriginalName();
+            $tempFilePath = $file->storeAs('temp_laporan', $tempFileName, 'local'); // ⬅️ Simpan di storage/app/temp_laporan
 
+            \Log::info("File disimpan sementara: {$tempFilePath}");
+
+            // 5. VALIDASI FILE CSV (baca isinya)
+            $validationResult = $this->validateCSVFile($tempFilePath); // ⬅️ BUAT METHOD INI
+
+            if (!$validationResult['valid']) {
+                throw new \Exception('File CSV tidak valid: ' . $validationResult['message']);
+            }
+
+            // 6. JIKA VALIDASI BERHASIL, PINDAHKAN KE FOLDER PUBLIC
+            $finalFileName = time() . '_' . $file->getClientOriginalName();
+            $finalFilePath = 'laporan_files/' . $finalFileName;
+
+            // Pindahkan dari temp ke public
+            Storage::disk('public')->put(
+                $finalFilePath,
+                Storage::disk('local')->get($tempFilePath)
+            );
+
+            // Hapus file temp
+            Storage::disk('local')->delete($tempFilePath);
+
+            $filePath = $finalFilePath; // ⬅️ File final di public
+
+            // 7. PROSES CSV
             $result = $this->processCSV($filePath);
+
+            if (empty($result) || !isset($result['total_transaksi'])) {
+                throw new \Exception('Gagal memproses file CSV.');
+            }
 
             $periodeLaporan = date('F Y');
 
+            // 8. SIMPAN KE DATABASE
             $laporanData = [
                 'judul_laporan' => $request->judul_laporan,
                 'file_name' => $file->getClientOriginalName(),
                 'file_path' => $filePath,
-                'total_transaksi' => $result['total_transaksi'],
+                'total_transaksi' => $result['total_transaksi'] ?? 0,
                 'total_data' => $result['total_data'] ?? 0,
                 'tanggal_laporan' => now(),
                 'periode_laporan' => $periodeLaporan,
@@ -96,21 +141,29 @@ class LaporanController extends Controller
             $laporan = Laporan::create($laporanData);
 
             \DB::commit();
-            $flashType = 'success';
-            $flashMessage = '✅ File CSV berhasil diupload!<br>' .
-                '📊 ' . $result['total_data'] . ' transaksi diproses.<br>' .
-                '💰 Total: Rp ' . number_format($result['total_transaksi'], 0, ',', '.');
 
-            if (!empty($result['errors']) && $result['total_data'] > 0) {
+            // 9. RESPONSE SUCCESS
+            $flashType = 'success';
+            $flashMessage = ' File CSV berhasil diupload!' .
+                '📊 ' . ($result['total_data'] ?? 0) . ' transaksi diproses.' .
+                '💰 Total: Rp ' . number_format($result['total_transaksi'] ?? 0, 0, ',', '.');
+
+            if (!empty($result['errors']) && ($result['total_data'] ?? 0) > 0) {
                 $flashType = 'warning';
-                $errorSummary = $this->getErrorSummary($result['errors'], count($result['errors']) + $result['total_data']);
+                $errorSummary = $this->getErrorSummary(
+                    $result['errors'],
+                    count($result['errors']) + ($result['total_data'] ?? 0)
+                );
                 $flashMessage = $errorSummary;
-            }
-            elseif (!empty($result['errors'])) {
-                $errorSummary = $this->getErrorSummary($result['errors'], count($result['errors']));
+            } elseif (!empty($result['errors'])) {
+                $errorSummary = $this->getErrorSummary(
+                    $result['errors'],
+                    count($result['errors'])
+                );
                 throw new \Exception($errorSummary);
             }
 
+            \Log::info('=== UPLOAD BERHASIL ===');
             return redirect()->route('owner.laporan.index')
                 ->with($flashType, $flashMessage);
 
@@ -119,23 +172,107 @@ class LaporanController extends Controller
 
             \Log::error('Upload CSV error: ' . $e->getMessage());
 
+            // 10. CLEANUP JIKA ERROR
+            // Hapus file temp jika ada
+            if ($tempFilePath !== null && Storage::disk('local')->exists($tempFilePath)) {
+                Storage::disk('local')->delete($tempFilePath);
+                \Log::info("File temp dihapus: {$tempFilePath}");
+            }
+
+            // Hapus file final jika sudah terupload ke public
             if ($filePath !== null && Storage::disk('public')->exists($filePath)) {
                 Storage::disk('public')->delete($filePath);
+                \Log::info("File public dihapus: {$filePath}");
             }
 
-            $errorMessage = '❌ Gagal upload file CSV: ' . $e->getMessage();
+            $errorMessage = ' Gagal upload file CSV: ' . $e->getMessage();
 
             if ($file !== null) {
-                $errorMessage .= ' [File: ' . $file->getClientOriginalName() . ']';
+                $errorMessage .= '📄 File: ' . $file->getClientOriginalName();
             }
 
-            return back()->with('error', $errorMessage);
+            return back()
+                ->with('error', $errorMessage)
+                ->withInput(); // ⬅️ Keep form input
         }
     }
 
-    /**
-     * Download the specified file.
-     */
+    private function validateCSVFile($filePath)
+    {
+        try {
+            $fullPath = Storage::disk('local')->path($filePath);
+
+            // Cek file exists
+            if (!file_exists($fullPath)) {
+                return ['valid' => false, 'message' => 'File tidak ditemukan'];
+            }
+
+            // Cek file size
+            $fileSize = filesize($fullPath);
+            if ($fileSize == 0) {
+                return ['valid' => false, 'message' => 'File kosong'];
+            }
+
+            // Baca beberapa baris pertama untuk validasi format
+            $file = fopen($fullPath, 'r');
+            if (!$file) {
+                return ['valid' => false, 'message' => 'Tidak bisa membaca file'];
+            }
+
+            // Baca header (baris pertama)
+            $header = fgetcsv($file);
+            if ($header === false) {
+                fclose($file);
+                return ['valid' => false, 'message' => 'File tidak memiliki header'];
+            }
+
+            // Cek minimal kolom (contoh: harus ada id, tanggal, jumlah)
+            $minColumns = 3;
+            if (count($header) < $minColumns) {
+                fclose($file);
+                return ['valid' => false, 'message' => 'Format CSV tidak sesuai. Minimal ' . $minColumns . ' kolom'];
+            }
+
+            // Cek apakah ada data selain header
+            $firstData = fgetcsv($file);
+            if ($firstData === false) {
+                fclose($file);
+                return ['valid' => false, 'message' => 'File hanya berisi header, tidak ada data'];
+            }
+
+            fclose($file);
+
+            return ['valid' => true, 'message' => 'File valid'];
+
+        } catch (\Exception $e) {
+            return ['valid' => false, 'message' => 'Error validasi: ' . $e->getMessage()];
+        }
+    }
+
+    public function cleanupTempFiles()
+    {
+        try {
+            $files = Storage::disk('local')->files('temp_laporan');
+            $deletedCount = 0;
+
+            foreach ($files as $file) {
+                // Hapus file temp yang lebih dari 1 jam
+                $lastModified = Storage::disk('local')->lastModified($file);
+                if (time() - $lastModified > 3600) { // 1 jam
+                    Storage::disk('local')->delete($file);
+                    $deletedCount++;
+                    \Log::info("Cleanup temp file: {$file}");
+                }
+            }
+
+            return "Deleted {$deletedCount} temp files";
+
+        } catch (\Exception $e) {
+            \Log::error('Cleanup error: ' . $e->getMessage());
+            return "Cleanup failed: " . $e->getMessage();
+        }
+    }
+
     public function download($id)
     {
         $laporan = Laporan::findOrFail($id);
@@ -148,10 +285,6 @@ class LaporanController extends Controller
 
         return response()->download($filePath, $laporan->file_name);
     }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
         \DB::beginTransaction();
@@ -161,32 +294,24 @@ class LaporanController extends Controller
 
             \Log::info("Menghapus laporan CSV ID: {$id}");
 
-            // Hapus file dari storage
             if (Storage::disk('public')->exists($laporan->file_path)) {
                 Storage::disk('public')->delete($laporan->file_path);
             }
-
-            // Hapus record laporan (tapi transaksi tetap di database)
             $laporan->delete();
 
             \DB::commit();
 
             return redirect()->route('owner.laporan.index')
-                ->with('success', '✅ Laporan CSV berhasil dihapus! Data transaksi tetap tersimpan di database.');
+                ->with('success', ' Laporan CSV berhasil dihapus!');
 
         } catch (\Exception $e) {
             \DB::rollBack();
             \Log::error("Gagal hapus laporan: " . $e->getMessage());
 
-            return back()->with('error', '❌ Gagal menghapus laporan: ' . $e->getMessage());
+            return back()->with('error', ' Gagal menghapus laporan: ' . $e->getMessage());
         }
     }
 
-    // ================= HELPER METHODS =================
-
-    /**
-     * Proses file CSV dan simpan transaksi ke database
-     */
     private function processCSV($filePath)
     {
         $fullPath = storage_path('app/public/' . $filePath);
@@ -200,7 +325,6 @@ class LaporanController extends Controller
             throw new \Exception('Tidak bisa membuka file CSV');
         }
 
-        // Skip header (baris pertama)
         $header = fgetcsv($handle);
         \Log::info('CSV Header: ' . json_encode($header));
 

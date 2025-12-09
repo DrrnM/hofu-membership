@@ -1,11 +1,10 @@
-{{-- resources/views/Owner/Dashboard.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Dashboard Owner')
 
 @section('content')
     <div class="container-fluid py-4">
-        <!-- STATS CARDS -->
+        <!-- STATISTIK CARD -->
         <div class="dashboard-cards d-flex flex-wrap gap-4 mb-5">
             <div class="card-info flex-fill text-center p-4 rounded shadow-sm" style="background-color: #d4ecff;">
                 <h5 class="fw-bold text-secondary mb-2">Total Member</h5>
@@ -18,87 +17,138 @@
             </div>
 
             <div class="card-info flex-fill text-center p-4 rounded shadow-sm" style="background-color: #fff3cd;">
-                <h5 class="fw-bold text-secondary mb-2">Transaksi Hari Ini</h5>
+                <h5 class="fw-bold text-secondary mb-2">Total Transaksi</h5>
                 <span class="fs-3 fw-bold text-warning">{{ $totalTransaksi ?? 0 }}</span>
             </div>
         </div>
 
-        <!-- CHART SECTION - BULANAN SAJA -->
+        <!-- CHART SECTION -->
         <div class="row">
-            <div class="col-lg-8 mb-4">
+            <div class="col-12">
                 <div class="card shadow border-0">
                     <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 text-primary">
-                            <i class="fas fa-chart-line me-2"></i> Grafik Poin per Bulan
+                            <i class="fas fa-chart-bar me-2"></i> Grafik Transaksi per Bulan
+                            <small class="text-muted ms-2" id="chartPeriod">({{ $chartPeriod }})</small>
                         </h5>
                         <div class="btn-group btn-group-sm">
-                            {{-- URUTAN BERUBAH: Semua Waktu dulu --}}
-                            <button type="button" class="btn btn-outline-primary active"
+                            <button type="button"
+                                class="btn btn-outline-primary {{ $filter == 'all_time' ? 'active' : '' }}"
                                 onclick="updateChart('all_time')">Semua Waktu</button>
-                            <button type="button" class="btn btn-outline-primary"
+
+                            <button type="button"
+                                class="btn btn-outline-primary {{ $filter == 'current_year' ? 'active' : '' }}"
                                 onclick="updateChart('current_year')">Tahun Ini</button>
-                            <button type="button" class="btn btn-outline-primary" onclick="updateChart('last_year')">Tahun
-                                Lalu</button>
+
+                            <button type="button"
+                                class="btn btn-outline-primary {{ $filter == 'last_year' ? 'active' : '' }}"
+                                onclick="updateChart('last_year')">Tahun Lalu</button>
                         </div>
                     </div>
+
                     <div class="card-body">
                         <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
-                            <canvas id="monthlyLineChart"></canvas>
+                            <canvas id="ownerChart"></canvas>
                         </div>
+
+                        <!-- Info statistik -->
+                        <div class="row text-center mt-4">
+                            <div class="col-md-4">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body py-3">
+                                        <div class="h4 text-primary mb-1" id="totalTransaksiCount"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body py-3">
+                                        <div class="h4 text-success mb-1" id="maxTransaksiMonth"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body py-3">
+                                        <div class="h4 text-info mb-1" id="avgTransaksi"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- TOP MEMBERS -->
-            <div class="col-lg-4 mb-4">
-                <div class="card shadow border-0 h-100">
-                    <div class="card-header bg-white border-0 py-3">
+        <!-- RECENT TRANSACTIONS -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 text-primary">
-                            <i class="fas fa-trophy me-2"></i> Top 5 Member
+                            <i class="fas fa-history me-2"></i> Transaksi Terbaru
                         </h5>
                     </div>
                     <div class="card-body">
-                        @php
-                            $topMembers = \App\Models\Member::orderByDesc('poin')->limit(5)->get();
-                        @endphp
-
-                        @if ($topMembers->count() > 0)
-                            <div class="list-group list-group-flush">
-                                @foreach ($topMembers as $index => $member)
-                                    <div
-                                        class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-3">
-                                        <div>
-                                            <span class="badge bg-primary me-2">#{{ $index + 1 }}</span>
-                                            <span class="fw-medium">{{ $member->nama }}</span>
-                                        </div>
-                                        <span class="badge bg-success rounded-pill">{{ number_format($member->poin) }}
-                                            poin</span>
-                                    </div>
-                                @endforeach
+                        @if ($recentTransactions && $recentTransactions->count() > 0)
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Member</th>
+                                            <th>Total</th>
+                                            <th>Poin</th>
+                                            <th>Waktu</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($recentTransactions as $transaksi)
+                                            <tr>
+                                                <td>#{{ $transaksi->id }}</td>
+                                                <td>{{ $transaksi->member->nama ?? 'Guest' }}</td>
+                                                <td>Rp {{ number_format($transaksi->total_pembelian, 0, ',', '.') }}</td>
+                                                <td><span class="badge bg-success">{{ $transaksi->jumlah_poin }}
+                                                        poin</span>
+                                                </td>
+                                                <td>{{ $transaksi->created_at->format('d M H:i') }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
                         @else
-                            <p class="text-muted text-center my-4">Belum ada data member</p>
+                            <p class="text-muted text-center my-4">Belum ada transaksi</p>
                         @endif
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Load Chart.js dari CDN -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </div>
 
-        <script>
-            // Data dari controller
-            const chartData = @json($chartData ?? []);
 
-            // 1. LINE CHART BULANAN
-            const monthlyLineCtx = document.getElementById('monthlyLineChart').getContext('2d');
-            let monthlyLineChart = new Chart(monthlyLineCtx, {
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const initialData = {
+            labels: @json($chartData['labels'] ?? []),
+            transaksi: @json($chartData['transaksi'] ?? [])
+        };
+
+        let ownerChart = null;
+
+        function initChart() {
+            const ctx = document.getElementById('ownerChart').getContext('2d');
+
+            ownerChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: chartData.monthly?.labels || [],
+                    labels: initialData.labels,
                     datasets: [{
-                        label: 'Poin per Bulan',
-                        data: chartData.monthly?.poin || [],
+                        label: 'Jumlah Transaksi',
+                        data: initialData.transaksi,
                         borderColor: '#4e73df',
                         backgroundColor: 'rgba(78, 115, 223, 0.1)',
                         borderWidth: 3,
@@ -106,6 +156,7 @@
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2,
                         pointRadius: 5,
+                        pointHoverRadius: 7,
                         tension: 0.3,
                         fill: true
                     }]
@@ -115,147 +166,106 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'top',
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            callbacks: {
-                                label: function(context) {
-                                    return `Poin: ${context.parsed.y.toLocaleString('id-ID')}`;
-                                }
-                            }
+                            display: true,
+                            position: 'top'
                         }
                     },
                     scales: {
                         x: {
-                            title: {
-                                display: true,
-                                text: 'Bulan'
-                            },
                             grid: {
                                 display: false
                             }
                         },
                         y: {
                             beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Total Poin'
-                            },
                             ticks: {
-                                callback: function(value) {
-                                    return value.toLocaleString('id-ID');
-                                }
+                                stepSize: 1,
+                                precision: 0
                             }
                         }
                     }
                 }
             });
+        }
 
-            // 2. BAR CHART BULANAN
-            const monthlyBarCtx = document.getElementById('monthlyBarChart').getContext('2d');
-            let monthlyBarChart = new Chart(monthlyBarCtx, {
-                type: 'bar',
-                data: {
-                    labels: chartData.monthly?.labels || [],
-                    datasets: [{
-                        label: 'Poin per Bulan',
-                        data: chartData.monthly?.poin || [],
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return value.toLocaleString('id-ID');
-                                }
-                            }
-                        }
+        function updateChart(filter) {
+            document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const periodMap = {
+                'all_time': 'Semua Waktu',
+                'current_year': 'Tahun Ini',
+                'last_year': 'Tahun Lalu'
+            };
+            document.getElementById('chartPeriod').textContent = `(${periodMap[filter]})`;
+
+            fetch(`{{ url('owner/chart-data') }}?filter=${filter}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
                     }
-                }
-            });
+                })
+                .then(res => res.json())
+                .then(data => {
+                    ownerChart.data.labels = data.labels;
+                    ownerChart.data.datasets[0].data = data.data;
+                    ownerChart.update();
 
-            // Fungsi update chart dengan AJAX
-            function updateChart(filter) {
-                // Update button active state
-                document.querySelectorAll('.btn-group .btn').forEach(btn => {
-                    btn.classList.remove('active');
+                    document.getElementById('totalTransaksiCount').textContent =
+                        data.data.reduce((a, b) => a + b, 0);
+                    document.getElementById('maxTransaksiMonth').textContent =
+                        Math.max(...data.data);
+                    document.getElementById('avgTransaksi').textContent =
+                        (data.data.reduce((a, b) => a + b, 0) / data.data.length).toFixed(1);
                 });
-                event.target.classList.add('active');
+        }
 
-                // Fetch data baru berdasarkan filter
-                fetch(`{{ route('owner.chart.data') }}?filter=${filter}`, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Update kedua chart
-                            monthlyLineChart.data.labels = data.labels;
-                            monthlyLineChart.data.datasets[0].data = data.data;
-                            monthlyLineChart.update();
+        document.addEventListener('DOMContentLoaded', initChart);
+    </script>
 
-                            monthlyBarChart.data.labels = data.labels;
-                            monthlyBarChart.data.datasets[0].data = data.data;
-                            monthlyBarChart.update();
+    <style>
+        .dashboard-cards {
+            margin-bottom: 2rem;
+        }
 
-                            // Update statistik jika ada
-                            if (data.stats) {
-                                updateStats(data.stats);
-                            }
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-            }
+        .card-info {
+            min-width: 200px;
+            transition: transform 0.2s;
+        }
 
-            // Fungsi update statistik (opsional)
-            function updateStats(stats) {
-                // Implement jika ingin update statistik via AJAX
-                console.log('Stats updated:', stats);
-            }
-        </script>
+        .card-info:hover {
+            transform: translateY(-5px);
+        }
 
-        <style>
-            .dashboard-cards {
-                margin-bottom: 2rem;
-            }
+        .btn-group .btn {
+            min-width: 100px;
+        }
 
-            .card-info {
-                min-width: 200px;
-                transition: transform 0.2s;
-            }
+        .btn-group .btn.active {
+            background-color: #4e73df;
+            border-color: #4e73df;
+            color: white;
+        }
 
-            .card-info:hover {
-                transform: translateY(-5px);
-            }
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+        }
 
-            .chart-container {
-                position: relative;
-            }
+        table.table-sm th {
+            font-size: 13px;
+            color: #6c757d;
+        }
 
-            .stat-card {
-                transition: all 0.3s;
-                height: 100%;
-            }
+        table.table-sm td {
+            font-size: 14px;
+            vertical-align: middle;
+        }
 
-            .stat-card:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            }
-        </style>
-    @endsection
+        .badge {
+            font-size: 12px;
+            padding: 4px 8px;
+        }
+    </style>
+
+@endsection

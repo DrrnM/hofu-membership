@@ -17,7 +17,6 @@ Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::middleware(['auth'])->group(function () {
-    // DASHBOARD DENGAN ROLE PROTECTION
     Route::get('/owner/dashboard', [OwnerController::class, 'dashboard'])
         ->middleware('owner')
         ->name('owner.dashboard');
@@ -35,7 +34,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('owner')
         ->name('owner.chart.data');
 
- 
+
     Route::get('/members', [MemberController::class, 'index'])->name('members.index');
     Route::get('/members/create', [MemberController::class, 'create'])->name('members.create');
     Route::post('/members/store', [MemberController::class, 'store'])->name('members.store');
@@ -81,14 +80,27 @@ Route::prefix('owner')->middleware(['auth', 'owner'])->group(function () {
     Route::post('/members/{id_member}/update-poin', [PoinController::class, 'updatePoin'])->name('members.update-poin.store');
 });
 
-// ✅ ROUTES KHUSUS KASIR SAJA
 Route::prefix('kasir')->middleware(['auth', 'kasir'])->group(function () {
     Route::get('/dashboard', [KasirController::class, 'dashboard'])->name('kasir.dashboard');
     Route::get('/quick-poin', [PoinController::class, 'quickInput'])->name('kasir.quick-poin');
     Route::post('/process-poin', [PoinController::class, 'processQuickPoin'])->name('kasir.process-poin');
 });
 
-// Debug route
 Route::get('/check', function () {
     dd(Auth::user());
 })->withoutMiddleware(['auth']);
+Route::get('/test-timezone', function () {
+    echo "1. Config timezone: " . config('app.timezone') . "<br>";
+    echo "2. PHP timezone: " . date_default_timezone_get() . "<br>";
+    echo "3. Laravel now(): " . now()->format('Y-m-d H:i:s') . "<br>";
+    echo "4. PHP date(): " . date('Y-m-d H:i:s') . "<br>";
+    echo "5. Carbon now(): " . \Carbon\Carbon::now()->format('Y-m-d H:i:s') . "<br>";
+    echo "6. Carbon Jakarta: " . \Carbon\Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s') . "<br>";
+
+    $transaksi = \App\Models\Transaksi::latest()->first();
+    if ($transaksi) {
+        echo "<br>Transaksi terbaru:<br>";
+        echo "- Created at: " . $transaksi->created_at . "<br>";
+        echo "- Format lokal: " . $transaksi->created_at->timezone('Asia/Jakarta')->format('Y-m-d H:i:s');
+    }
+});

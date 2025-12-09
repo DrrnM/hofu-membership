@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="container-fluid py-4">
-        <!-- STATS CARDS -->
+        <!-- STATISTIK CARD -->
         <div class="dashboard-cards d-flex flex-wrap gap-4 mb-5">
             <div class="card-info flex-fill text-center p-4 rounded shadow-sm" style="background-color: #d4ecff;">
                 <h5 class="fw-bold text-secondary mb-2">Total Member</h5>
@@ -26,39 +26,54 @@
         <div class="row">
             <div class="col-12">
                 <div class="card shadow border-0">
-                    <div class="card-header bg-white border-0 py-3">
+                    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 text-primary">
-                            <i class="fas fa-chart-line me-2"></i> Aktivitas 7 Hari Terakhir
+                            <i class="fas fa-chart-bar me-2"></i> Grafik Transaksi per Bulan
+                            <small class="text-muted ms-2" id="chartPeriod">({{ $chartPeriod }})</small>
                         </h5>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button"
+                                class="btn btn-outline-primary {{ $filter == 'all_time' ? 'active' : '' }}"
+                                onclick="updateChart('all_time')">Semua Waktu</button>
+                            <button type="button"
+                                class="btn btn-outline-primary {{ $filter == 'current_year' ? 'active' : '' }}"
+                                onclick="updateChart('current_year')">Tahun Ini</button>
+                            <button type="button"
+                                class="btn btn-outline-primary {{ $filter == 'last_year' ? 'active' : '' }}"
+                                onclick="updateChart('last_year')">Tahun Lalu</button>
+                        </div>
                     </div>
                     <div class="card-body">
-                        @if ($chartData['has_data'])
-                            <!-- Jika ada data -->
-                            <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
-                                <canvas id="kasirChart"></canvas>
-                            </div>
-                        @else
-                            <!-- Jika tidak ada data -->
-                            <div class="text-center py-5">
-                                <div class="mb-3">
-                                    <i class="fas fa-chart-bar fa-4x text-muted"></i>
-                                </div>
-                                <h5 class="text-muted mb-2">Belum ada data grafik</h5>
-                                <p class="text-muted mb-4">
-                                    Data grafik akan muncul setelah ada transaksi dalam beberapa hari.
-                                </p>
-                                <div class="row justify-content-center">
-                                    <div class="col-md-6">
-                                        <div class="card border-0 bg-light">
-                                            <div class="card-body text-center">
-                                                <div class="h4 text-primary mb-1">{{ $totalTransaksi }}</div>
-                                                <div class="text-muted small">Transaksi Hari Ini</div>
-                                            </div>
+                        <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                            <canvas id="kasirChart"></canvas>
+                        </div>
+
+                        <!-- Info statistik -->
+                        <div class="row text-center mt-4">
+                            <div class="col-md-4">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body py-3">
+                                        <div class="h4 text-primary mb-1" id="totalTransaksiCount">
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        @endif
+                            <div class="col-md-4">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body py-3">
+                                        <div class="h4 text-success mb-1" id="maxTransaksiMonth">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body py-3">
+                                        <div class="h4 text-info mb-1" id="avgTransaksi">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -72,19 +87,9 @@
                         <h5 class="mb-0 text-primary">
                             <i class="fas fa-history me-2"></i> Transaksi Terbaru
                         </h5>
-                        <a href="{{ route('kasir.transaksi') }}" class="btn btn-sm btn-outline-primary">
-                            Lihat Semua
-                        </a>
                     </div>
                     <div class="card-body">
-                        @php
-                            $recentTransactions = \App\Models\Transaksi::with('member')
-                                ->orderBy('created_at', 'desc')
-                                ->limit(5)
-                                ->get();
-                        @endphp
-
-                        @if ($recentTransactions->count() > 0)
+                        @if ($recentTransactions && $recentTransactions->count() > 0)
                             <div class="table-responsive">
                                 <table class="table table-sm table-hover">
                                     <thead>
@@ -102,9 +107,9 @@
                                                 <td>#{{ $transaksi->id }}</td>
                                                 <td>{{ $transaksi->member->nama ?? 'Guest' }}</td>
                                                 <td>Rp {{ number_format($transaksi->total_pembelian, 0, ',', '.') }}</td>
-                                                <td><span class="badge bg-success">{{ $transaksi->jumlah_poin }} poin</span>
-                                                </td>
-                                                <td>{{ $transaksi->created_at->format('H:i') }}</td>
+                                                <td><span class="badge bg-success">{{ $transaksi->jumlah_poin }}
+                                                        poin</span></td>
+                                                <td>{{ $transaksi->created_at->format('d M H:i') }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -119,33 +124,39 @@
         </div>
     </div>
 
-    @if ($chartData['has_data'])
-        <!-- Load Chart.js -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Load Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        <script>
-            // Data untuk kasir
-            const kasirCtx = document.getElementById('kasirChart').getContext('2d');
-            const kasirChart = new Chart(kasirCtx, {
-                type: 'line',
+    <script>
+        // Data awal untuk chart
+        const initialData = {
+            labels: @json($chartData['labels'] ?? []),
+            transaksi: @json($chartData['transaksi'] ?? [])
+        };
+
+        let kasirChart = null;
+
+        // Inisialisasi chart
+        function initChart() {
+            const ctx = document.getElementById('kasirChart').getContext('2d');
+
+            kasirChart = new Chart(ctx, {
+                type: 'line', // GANTI DARI 'bar' KE 'line'
                 data: {
-                    labels: @json($chartData['labels']),
+                    labels: initialData.labels,
                     datasets: [{
-                        label: 'Poin Harian',
-                        data: @json($chartData['poin']),
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        borderWidth: 2,
+                        label: 'Jumlah Transaksi',
+                        data: initialData.transaksi,
+                        borderColor: '#4e73df',
+                        backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#4e73df',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
                         tension: 0.3,
                         fill: true
-                    }, {
-                        label: 'Jumlah Transaksi',
-                        data: @json($chartData['transaksi']),
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        fill: false
                     }]
                 },
                 options: {
@@ -153,21 +164,114 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
+                            display: true,
                             position: 'top',
+                            labels: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Transaksi: ${context.parsed.y} kali`;
+                                },
+                                title: function(tooltipItems) {
+                                    return tooltipItems[0].label;
+                                }
+                            }
                         }
                     },
                     scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
                         y: {
                             beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Jumlah Transaksi'
+                            },
                             ticks: {
-                                stepSize: 1
+                                stepSize: 1,
+                                precision: 0
                             }
                         }
                     }
                 }
             });
-        </script>
-    @endif
+        }
+
+        function updateChart(filter) {
+            document.querySelectorAll('.btn-group .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            const periodMap = {
+                'all_time': 'Semua Waktu',
+                'current_year': 'Tahun Ini',
+                'last_year': 'Tahun Lalu'
+            };
+            document.getElementById('chartPeriod').textContent = `(${periodMap[filter]})`;
+
+            const originalTitle = document.querySelector('.card-header h5').innerHTML;
+            document.querySelector('.card-header h5').innerHTML =
+                '<i class="fas fa-chart-bar me-2"></i> Memuat data...';
+
+            fetch(`{{ url('kasir/chart-data') }}?filter=${filter}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network error');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Update chart
+                        kasirChart.data.labels = data.labels;
+                        kasirChart.data.datasets[0].data = data.data;
+                        kasirChart.update();
+
+                        // Update statistik
+                        document.getElementById('totalTransaksiCount').textContent =
+                            data.data.reduce((a, b) => a + b, 0);
+                        document.getElementById('maxTransaksiMonth').textContent =
+                            Math.max(...data.data);
+                        document.getElementById('avgTransaksi').textContent =
+                            (data.data.reduce((a, b) => a + b, 0) / data.data.length).toFixed(1);
+
+                        // Kembalikan judul
+                        document.querySelector('.card-header h5').innerHTML =
+                            `<i class="fas fa-chart-bar me-2"></i> Grafik Transaksi per Bulan 
+                         <small class="text-muted ms-2" id="chartPeriod">(${periodMap[filter]})</small>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Gagal memuat data grafik');
+                    document.querySelector('.card-header h5').innerHTML = originalTitle;
+                });
+        }
+
+        // Inisialisasi saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            initChart();
+        });
+    </script>
 
     <style>
         .dashboard-cards {
@@ -181,6 +285,37 @@
 
         .card-info:hover {
             transform: translateY(-5px);
+        }
+
+        .btn-group .btn {
+            min-width: 100px;
+        }
+
+        .btn-group .btn.active {
+            background-color: #4e73df;
+            border-color: #4e73df;
+            color: white;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        table.table-sm th {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        table.table-sm td {
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .badge {
+            font-size: 12px;
+            padding: 4px 8px;
         }
     </style>
 @endsection

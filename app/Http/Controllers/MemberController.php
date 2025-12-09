@@ -33,7 +33,6 @@ class MemberController extends Controller
             'poin' => 'nullable|integer|min:0',
         ]);
 
-        // Generate unique ID
         do {
             $randomId = rand(100, 999);
         } while (Member::where('member_id', $randomId)->exists());
@@ -64,59 +63,79 @@ class MemberController extends Controller
         return view('Member.edit', compact('member'));
     }
 
-public function update(Request $request, $id)
-{
-    $request->validate([
-        'nama' => 'required|string|max:100',
-        'no_hp' => 'required|string|max:20|unique:members,no_hp,' . $id . ',member_id',
-        'poin' => 'nullable|integer|min:0|max:600', 
-    ]);
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:100',
+            'no_hp' => 'required|string|max:20|unique:members,no_hp,' . $id . ',member_id',
+            'poin' => 'nullable|integer|min:0|max:600',
+        ]);
 
-    $member = Member::where('member_id', $id)->firstOrFail();
+        $member = Member::where('member_id', $id)->firstOrFail();
 
-    \Log::info("=== DEBUG UPDATE MEMBER ===");
-    \Log::info("Member: " . $member->member_id);
-    \Log::info("Poin Lama: " . $member->poin);
-    \Log::info("Tier Lama: " . $member->tipe_langganan);
-    \Log::info("Poin Request: " . ($request->poin ?? 0));
+        \Log::info("=== DEBUG UPDATE MEMBER ===");
+        \Log::info("Member: " . $member->member_id);
+        \Log::info("Poin Lama: " . $member->poin);
+        \Log::info("Tier Lama: " . $member->tipe_langganan);
+        \Log::info("Poin Request: " . ($request->poin ?? 0));
 
-    $oldTier = $member->tipe_langganan;
-    $newPoin = $request->poin ?? 0;
-    
-    $newTier = Member::getTierByPoin($newPoin);
-    \Log::info("Tier Baru yang Dihitung: " . $newTier);
+        $oldTier = $member->tipe_langganan;
+        $newPoin = $request->poin ?? 0;
 
-    $updateData = [
-        'nama' => $request->nama,
-        'no_hp' => $request->no_hp,
-        'poin' => $newPoin,
-        'tipe_langganan' => $newTier, 
-    ];
+        $newTier = Member::getTierByPoin($newPoin);
+        \Log::info("Tier Baru yang Dihitung: " . $newTier);
 
-    \Log::info("Data untuk update: " . json_encode($updateData));
-    
-    $member->update($updateData);
-    
-    
-    $member->refresh();
+        $updateData = [
+            'nama' => $request->nama,
+            'no_hp' => $request->no_hp,
+            'poin' => $newPoin,
+            'tipe_langganan' => $newTier,
+        ];
 
-    \Log::info("Tier Setelah Update: " . $member->tipe_langganan);
-    \Log::info("Poin Setelah Update: " . $member->poin);
-    \Log::info("Poin Raw (database): " . $member->getRawOriginal('poin'));
+        \Log::info("Data untuk update: " . json_encode($updateData));
 
-    $message = 'Data member berhasil diperbarui!';
-    if ($oldTier !== $newTier) {
-        $message .= ' Tier berubah: ' . $member->getLabelLangganan();
+        $member->update($updateData);
+
+
+        $member->refresh();
+
+        \Log::info("Tier Setelah Update: " . $member->tipe_langganan);
+        \Log::info("Poin Setelah Update: " . $member->poin);
+        \Log::info("Poin Raw (database): " . $member->getRawOriginal('poin'));
+
+        $message = 'Data member berhasil diperbarui!';
+        if ($oldTier !== $newTier) {
+            $message .= ' Tier berubah: ' . $member->getLabelLangganan();
+        }
+
+        return redirect()->route('members.index')->with('success', $message);
     }
-
-    return redirect()->route('members.index')->with('success', $message);
-}
     public function destroy($id)
     {
-        $member = Member::where('member_id', $id)->firstOrFail();
-        $member->delete();
+        \DB::beginTransaction();
 
-        return redirect()->route('members.index')->with('success', 'Member berhasil dihapus!');
+        try {
+            $member = Member::where('member_id', $id)->firstOrFail();
+
+
+            $member->poinHistory()->delete();
+            $member->transaksi()->delete();
+
+            $member->delete();
+
+            \DB::commit();
+
+            return redirect()->route('members.index')
+                ->with('success', ' Member berhasil dihapus!');
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+
+            return back()->with(
+                'error',
+                ' Gagal menghapus member: ' . $e->getMessage()
+            );
+        }
+
     }
-
 }

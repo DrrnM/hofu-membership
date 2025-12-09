@@ -220,35 +220,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-            const alerts = document.querySelectorAll('.alert');
-
-            if (alerts.length > 1) {
-                console.warn(`⚠️ Found ${alerts.length} alerts, removing duplicates...`);
-
-
-                let keepAlert = null;
-                const priority = ['danger', 'error', 'warning', 'success', 'info'];
-
-                for (const type of priority) {
-                    const alert = document.querySelector(`.alert-${type}, .alert-danger`);
-                    if (alert) {
-                        keepAlert = alert;
-                        break;
-                    }
-                }
-
-
-                alerts.forEach(alert => alert.remove());
-
-                if (keepAlert && keepAlert.parentNode) {
-                    keepAlert.parentNode.insertBefore(keepAlert, keepAlert.parentNode.firstChild);
-                }
-            }
-        });
-    </script>
+    
 </body>
 
 </html>

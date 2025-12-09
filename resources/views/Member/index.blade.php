@@ -43,12 +43,15 @@
                                class="btn btn-info btn-sm text-white px-3">Tampil</a>
                             <a href="{{ route('members.edit', $member->member_id) }}" 
                                class="btn btn-warning btn-sm px-3">Ubah</a>
+                            
+                            {{-- PERBAIKAN: Form dengan confirmation --}}
                             <form action="{{ route('members.destroy', $member->member_id) }}" 
-                                  method="POST" class="d-inline">
+                                  method="POST" 
+                                  onsubmit="return confirm('Hapus member {{ $member->nama }}?\\n\\nSemua data poin dan transaksi juga akan dihapus!')"
+                                  class="d-inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="button" onclick="confirmDelete(this)" 
-                                        class="btn btn-danger btn-sm px-3">
+                                <button type="submit" class="btn btn-danger btn-sm px-3">
                                     Hapus
                                 </button>
                             </form>
@@ -65,26 +68,28 @@
             </tbody>
         </table>
     </div>
+
+    {{-- Pagination --}}
+    @if($members->hasPages())
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <div class="text-muted">
+            Menampilkan {{ $members->firstItem() ?? 0 }} - {{ $members->lastItem() ?? 0 }} 
+            dari {{ $members->total() }} member
+        </div>
+        <div class="d-flex gap-2">
+            @if (!$members->onFirstPage())
+                <a href="{{ $members->previousPageUrl() }}" class="btn btn-primary btn-sm px-3 py-1">
+                    ‹
+                </a>
+            @endif
+            
+            @if ($members->hasMorePages())
+                <a href="{{ $members->nextPageUrl() }}" class="btn btn-primary btn-sm px-3 py-1">
+                    ›
+                </a>
+            @endif
+        </div>
+    </div>
+    @endif
 </div>
 @endsection
-
-@if($members->hasPages())
-    @section('pagination_info')
-        Menampilkan {{ $members->firstItem() ?? 0 }} - {{ $members->lastItem() ?? 0 }} 
-        dari {{ $members->total() }} member
-    @endsection
-
-    @section('pagination_buttons')
-        @if (!$members->onFirstPage())
-            <a href="{{ $members->previousPageUrl() }}" class="btn btn-primary btn-sm px-3 py-1">
-                ‹
-            </a>
-        @endif
-        
-        @if ($members->hasMorePages())
-            <a href="{{ $members->nextPageUrl() }}" class="btn btn-primary btn-sm px-3 py-1">
-                ›
-            </a>
-        @endif
-    @endsection
-@endif

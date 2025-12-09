@@ -44,7 +44,6 @@ class DashboardController extends Controller
     
     private function getChartData()
     {
-        // Data harian (30 hari)
         $dailyData = Transaksi::selectRaw('
                 DATE(created_at) as tanggal,
                 SUM(jumlah_poin) as total_poin,
@@ -106,9 +105,6 @@ class DashboardController extends Controller
         ];
     }
     
-    /**
-     * API endpoint untuk AJAX chart update
-     */
     public function getChartDataApi(Request $request)
     {
         $days = $request->get('days', 30);

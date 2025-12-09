@@ -8,13 +8,13 @@
         <h4 class="fw-bold text-primary mb-4 text-center">Edit Poin - {{ $member->nama }}</h4>
 
         <div class="mb-3 p-3 bg-white rounded">
-            <p class="mb-1"><strong>ID Member:</strong> {{ $member->id_member }}</p>
+            <p class="mb-1"><strong>ID Member:</strong> {{ $member->member_id }}</p>
             <p class="mb-1"><strong>Nama:</strong> {{ $member->nama }}</p>
             <p class="mb-0"><strong>Poin Saat Ini:</strong> <span class="badge bg-primary">{{ $member->poin }}</span></p>
             <p class="mb-0"><strong>Tier:</strong> <span class="badge bg-{{ $member->getColorBadge() }}">{{ $member->getLabelLangganan() }}</span></p>
         </div>
 
-        <form action="{{ route('poins.update', $member->id_member) }}" method="POST">
+        <form action="{{ route('poins.update', $member->member_id) }}" method="POST">
             @csrf
             @method('PUT')
 

@@ -4,30 +4,7 @@
 
 @section('content')
     <div class="main-content">
-        {{-- HAPUS INLINE STYLE DARI CARD --}}
-        <div class="card shadow-sm p-4 bg-white"> {{-- ✅ Ganti dengan bg-white --}}
-            {{-- Alert messages --}}
-            @if (session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    ❌ {{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if (session('warning'))
-                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                    ⚠️ {!! nl2br(e(session('warning'))) !!}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    ✅ {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
+        <div class="card shadow-sm p-4 bg-white">
             {{-- Header --}}
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
