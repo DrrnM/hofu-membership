@@ -26,13 +26,15 @@ class OwnerController extends Controller
         // Data grafik transaksi per bulan
         $chartData = $this->getMonthlyTransactionData($filter);
 
-        // Transaksi terbaru untuk dashboard owner juga
         $recentTransactions = Transaksi::with('member')
             ->orderBy('created_at', 'desc')
             ->limit(5)
-            ->get();
-
-        // Label periode untuk tampilan
+            ->get()
+            ->map(function ($transaction) {
+                $transaction->id = $transaction->id_transaksi;
+                return $transaction;
+            });
+            
         $chartPeriod = $this->getChartPeriodLabel($filter);
 
         return view('owner.dashboard', compact(
@@ -40,16 +42,13 @@ class OwnerController extends Controller
             'totalPoin',
             'totalTransaksi',
             'chartData',
-            'recentTransactions', // TAMBAHKAN INI
+            'recentTransactions',
             'filter',
             'chartPeriod'
         ));
-    }
+    } // ← PASTIKAN ada tutup kurung ini
 
-    /**
-     * Ambil data transaksi per bulan berdasarkan filter (SAMA DENGAN KASIR)
-     */
-    private function getMonthlyTransactionData($filter)
+    private function getMonthlyTransactionData($filter) // ← Line 50 yang error
     {
         $now = Carbon::now();
 
@@ -92,7 +91,7 @@ class OwnerController extends Controller
         $current = $startDate->copy()->startOfMonth();
 
         while ($current <= $endDate) {
-            $monthName = $current->translatedFormat('M Y'); // Format: Jan 2024
+            $monthName = $current->translatedFormat('M Y');
 
             // Cari transaksi untuk bulan ini
             $transaction = $transactions->first(function ($item) use ($current) {
@@ -111,7 +110,7 @@ class OwnerController extends Controller
             'has_data' => array_sum($data) > 0,
             'total_transactions' => array_sum($data)
         ];
-    }
+    } // ← PASTIKAN ada tutup kurung ini
 
     private function getChartPeriodLabel($filter)
     {
@@ -125,7 +124,7 @@ class OwnerController extends Controller
             default:
                 return 'Tahun ' . date('Y');
         }
-    }
+    } // ← PASTIKAN ada tutup kurung ini
 
     public function chartData(Request $request)
     {
@@ -139,7 +138,7 @@ class OwnerController extends Controller
             'filter' => $filter,
             'total' => array_sum($chartData['transaksi'])
         ]);
-    }
+    } // ← PASTIKAN ada tutup kurung ini
 
     public function laporanMember()
     {
@@ -149,7 +148,7 @@ class OwnerController extends Controller
             ->get();
 
         return view('owner.laporan-member', compact('members'));
-    }
+    } // ← PASTIKAN ada tutup kurung ini
 
     public function laporanTransaksi()
     {
@@ -158,7 +157,7 @@ class OwnerController extends Controller
             ->get();
 
         return view('owner.laporan-transaksi', compact('transactions'));
-    }
+    } // ← PASTIKAN ada tutup kurung ini
 
     public function laporanPoin()
     {
@@ -167,13 +166,13 @@ class OwnerController extends Controller
             ->get();
 
         return view('owner.laporan-poin', compact('poinHistory'));
-    }
+    } // ← PASTIKAN ada tutup kurung ini
 
     public function manageReward()
     {
         $rewards = Reward::all();
         return view('owner.manage-reward', compact('rewards'));
-    }
+    } // ← PASTIKAN ada tutup kurung ini
 
     public function tambahReward(Request $request)
     {
@@ -192,9 +191,9 @@ class OwnerController extends Controller
 
         return redirect()->route('owner.manage-reward')
             ->with('success', 'Reward berhasil ditambahkan!');
-    }
+    } // ← PASTIKAN ada tutup kurung ini
 
-    private function getChartData()
+    private function getChartData() // ← PASTIKAN method ini berada DI DALAM class
     {
         return [
             'monthly' => [
@@ -205,5 +204,6 @@ class OwnerController extends Controller
             ],
             'stats' => []
         ];
-    }
-}
+    } // ← PASTIKAN ada tutup kurung ini
+
+} // ← PASTIKAN ada tutup kurung untuk CLASS

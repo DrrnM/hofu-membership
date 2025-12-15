@@ -20,19 +20,20 @@ class KasirController extends Controller
         $totalPoin = Member::sum('poin');
         $totalTransaksi = Transaksi::whereDate('created_at', today())->count();
         
-        // Ambil filter dari request, default 'current_year'
         $filter = $request->get('filter', 'current_year');
         
-        // Data grafik transaksi per bulan (SAMA DENGAN OWNER)
         $chartData = $this->getMonthlyTransactionData($filter);
         
         // Transaksi terbaru untuk tabel
         $recentTransactions = Transaksi::with('member')
             ->orderBy('created_at', 'desc')
             ->limit(5)
-            ->get();
-        
-        // Label periode untuk tampilan
+            ->get()
+            ->map(function ($transaction) {
+                $transaction->id = $transaction->id_transaksi;
+                return $transaction;
+            });
+
         $chartPeriod = $this->getChartPeriodLabel($filter);
         
         \Log::info('Kasir Dashboard accessed', [
